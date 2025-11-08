@@ -186,7 +186,8 @@ export default function GlobeComponent({
 
       // Gentle parabolic altitude (highest at midpoint but very subtle)
       const altitudeMultiplier = Math.sin(routeProgress * Math.PI);
-      const altitude = maxAltitude * altitudeMultiplier;
+      // Add small offset to ensure plane is always visible above the arc
+      const altitude = maxAltitude * altitudeMultiplier + 0.003;
 
       // Get aircraft registration
       const aircraft = fleet.find(a => a.id === route.aircraftId);
@@ -313,10 +314,10 @@ export default function GlobeComponent({
         arcColor="color"
         arcAltitude="altitude"
         arcStroke="stroke"
-        arcDashLength={0.4}
-        arcDashGap={0.2}
-        arcDashAnimateTime={2000}
-        arcsTransitionDuration={300}
+        arcDashLength={0}
+        arcDashGap={0}
+        arcDashAnimateTime={0}
+        arcsTransitionDuration={0}
         arcLabel={d => `
           <div class="route-tooltip">
             <strong>${d.origin} → ${d.destination}</strong><br/>
