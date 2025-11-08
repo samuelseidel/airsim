@@ -25,6 +25,10 @@ export default function MobileNav() {
   };
 
   const availableTypes = [
+    { id: 'saab340', unlocked: true },
+    { id: 'atr42', unlocked: true },
+    { id: 'atr72', unlocked: true },
+    { id: 'dhc8', unlocked: true },
     { id: 'crj700', unlocked: true },
     { id: 'erj175', unlocked: true },
     { id: 'a320', unlocked: weeklyRevenue >= 10000000 },
