@@ -243,16 +243,22 @@ export default function GlobeComponent({
       // Add slight boost for hover effect
       const finalAltitude = isHovered ? normalizedAltitude * 1.3 : normalizedAltitude;
 
-      // Enhanced colors for active routes with glow effect
+      // Bright, clear colors for all routes
       let routeColor;
+      let strokeWidth;
+
       if (isHovered) {
+        // Golden for hovered
         routeColor = ['#FFD700', '#FFD700'];
+        strokeWidth = 4;
       } else if (isActive) {
-        // Active routes are brighter and more vibrant
-        routeColor = isProfitable ? ['#00ffaa', '#00ff88'] : ['#ff6666', '#ff4444'];
+        // Bright colors for active routes
+        routeColor = isProfitable ? ['#00ff88', '#00ff88'] : ['#ff4444', '#ff4444'];
+        strokeWidth = 2.5;
       } else {
-        // Inactive routes are dimmer
-        routeColor = isProfitable ? ['#00cc77', '#00aa66'] : ['#cc3333', '#aa2222'];
+        // Still visible but dimmer for inactive routes
+        routeColor = isProfitable ? ['#00aa55', '#00aa55'] : ['#aa2222', '#aa2222'];
+        strokeWidth = 1.5;
       }
 
       return {
@@ -263,7 +269,7 @@ export default function GlobeComponent({
         endLng: destination.lng,
         color: routeColor,
         altitude: finalAltitude,
-        stroke: isHovered ? 3.5 : isActive ? 2.5 : 1.5,
+        stroke: strokeWidth,
       };
     }).filter(Boolean)
   , [routes, hoveredRoute]);
