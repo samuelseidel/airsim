@@ -18,20 +18,10 @@ export default function GlobeComponent({
     height: window.innerHeight
   });
   const [planePositions, setPlanePositions] = useState([]);
-  const [animationTime, setAnimationTime] = useState(0);
 
   // Get game time for day/night cycle and active routes
   const gameTime = useGameStore(state => state.gameTime);
   const fleet = useGameStore(state => state.fleet);
-
-  // Animation loop for plane marker effects
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimationTime(Date.now() * 0.001);
-    }, 50); // Update 20 times per second for smooth animation
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Handle window resize
   useEffect(() => {
@@ -338,31 +328,31 @@ export default function GlobeComponent({
             ${d.route}
           </div>
         `}
-        objectThreeObject={d => {
-          // Create a group to hold all visual elements
+        objectThreeObject={() => {
+          // Create a simple, clean plane marker
           const group = new THREE.Group();
 
           // Core plane marker (bright golden sphere)
-          const coreGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+          const coreGeometry = new THREE.SphereGeometry(0.5, 16, 16);
           const coreMaterial = new THREE.MeshBasicMaterial({
             color: 0xFFD700,
-            transparent: true,
+            transparent: false,
             opacity: 1
           });
           const core = new THREE.Mesh(coreGeometry, coreMaterial);
           group.add(core);
 
-          // Inner glow (pulsing)
-          const glowGeometry = new THREE.SphereGeometry(0.7, 16, 16);
+          // Add a subtle static glow
+          const glowGeometry = new THREE.SphereGeometry(0.8, 16, 16);
           const glowMaterial = new THREE.MeshBasicMaterial({
             color: 0xFFD700,
             transparent: true,
-            opacity: 0.5
+            opacity: 0.4
           });
           const glow = new THREE.Mesh(glowGeometry, glowMaterial);
           group.add(glow);
 
-          // Outer glow ring (larger, more subtle)
+          // Add a larger outer glow for visibility
           const outerGlowGeometry = new THREE.SphereGeometry(1.2, 16, 16);
           const outerGlowMaterial = new THREE.MeshBasicMaterial({
             color: 0xFFAA00,
@@ -371,36 +361,6 @@ export default function GlobeComponent({
           });
           const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
           group.add(outerGlow);
-
-          // Add expanding ring animation
-          const ringGeometry = new THREE.RingGeometry(0.8, 1.0, 32);
-          const ringMaterial = new THREE.MeshBasicMaterial({
-            color: 0xFFD700,
-            transparent: true,
-            opacity: 0.6,
-            side: THREE.DoubleSide
-          });
-          const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-          ring.rotation.x = Math.PI / 2; // Rotate to be horizontal
-          group.add(ring);
-
-          // Animate the glows and ring using animation time
-          glow.scale.set(
-            1 + Math.sin(animationTime * 2) * 0.2,
-            1 + Math.sin(animationTime * 2) * 0.2,
-            1 + Math.sin(animationTime * 2) * 0.2
-          );
-          outerGlow.scale.set(
-            1 + Math.sin(animationTime * 1.5) * 0.3,
-            1 + Math.sin(animationTime * 1.5) * 0.3,
-            1 + Math.sin(animationTime * 1.5) * 0.3
-          );
-          ring.scale.set(
-            1 + Math.sin(animationTime * 3) * 0.3,
-            1 + Math.sin(animationTime * 3) * 0.3,
-            1 + Math.sin(animationTime * 3) * 0.3
-          );
-          ring.material.opacity = 0.6 - Math.abs(Math.sin(animationTime * 3)) * 0.4;
 
           return group;
         }}
