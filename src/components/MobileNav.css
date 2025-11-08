@@ -1,0 +1,411 @@
+.mobile-nav-container {
+  display: none;
+}
+
+/* Show mobile nav only on mobile devices */
+@media (max-width: 768px) {
+  .mobile-nav-container {
+    display: block;
+  }
+
+  /* Hide desktop sidebar on mobile */
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Adjust top bar for mobile */
+  .top-bar {
+    padding: 0 12px;
+    height: 60px;
+  }
+
+  .game-title {
+    font-size: 18px;
+  }
+
+  .stats {
+    gap: 12px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+  }
+
+  .stat-value {
+    font-size: 14px;
+  }
+
+  .controls {
+    gap: 8px;
+  }
+
+  .control-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .speed-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+}
+
+/* Mobile nav toggle button */
+.mobile-nav-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00ff88, #00cc6a);
+  border: none;
+  color: #000;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 255, 136, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Bottom sheet overlay */
+.mobile-sheet-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Bottom sheet */
+.mobile-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 80vh;
+  background: rgba(10, 10, 20, 0.98);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border: 2px solid rgba(0, 255, 136, 0.3);
+  border-bottom: none;
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(20px);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Tabs */
+.mobile-tabs {
+  display: flex;
+  gap: 0;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.mobile-tab {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-tab.active {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+/* Content */
+.mobile-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-section {
+  margin-bottom: 20px;
+}
+
+.mobile-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mobile-section-header h3 {
+  margin: 0;
+  color: #00ff88;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobile-add-btn {
+  padding: 8px 16px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid #00ff88;
+  border-radius: 8px;
+  color: #00ff88;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+
+.mobile-add-btn:active {
+  background: rgba(0, 255, 136, 0.2);
+  transform: scale(0.98);
+}
+
+.mobile-add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mobile-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Lists */
+.mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Route items */
+.mobile-route-item,
+.mobile-fleet-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 44px;
+}
+
+.mobile-route-header,
+.mobile-fleet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mobile-route-name,
+.mobile-fleet-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.mobile-delete-btn {
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  color: #ff4444;
+  font-size: 24px;
+  line-height: 1;
+  padding: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-delete-btn:active {
+  background: rgba(255, 68, 68, 0.2);
+}
+
+.mobile-route-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mobile-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-stat-label {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.mobile-stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.mobile-stat-value.profit {
+  color: #00ff88;
+}
+
+.mobile-stat-value.loss {
+  color: #ff4444;
+}
+
+/* Fleet items */
+.mobile-fleet-type {
+  color: #888;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.mobile-fleet-condition {
+  color: #00ff88;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mobile-fleet-status {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-active {
+  color: #00ff88;
+  font-size: 13px;
+}
+
+.status-idle {
+  color: #888;
+  font-size: 13px;
+}
+
+/* Purchase section */
+.mobile-purchase-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-purchase-section h4 {
+  margin: 0 0 16px 0;
+  color: #888;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobile-purchase-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  min-height: 60px;
+}
+
+.mobile-purchase-item.locked {
+  opacity: 0.5;
+}
+
+.mobile-purchase-info {
+  flex: 1;
+}
+
+.mobile-purchase-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.mobile-purchase-price {
+  color: #FFD700;
+  font-size: 13px;
+}
+
+.mobile-purchase-btn {
+  padding: 10px 20px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid #00ff88;
+  border-radius: 8px;
+  color: #00ff88;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 70px;
+  min-height: 44px;
+}
+
+.mobile-purchase-btn:active:not(:disabled) {
+  background: rgba(0, 255, 136, 0.2);
+  transform: scale(0.98);
+}
+
+.mobile-purchase-btn:disabled {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* Smooth scrolling */
+.mobile-content {
+  scroll-behavior: smooth;
+}
+
+/* Prevent body scroll when sheet is open */
+body.mobile-sheet-open {
+  overflow: hidden;
+}
