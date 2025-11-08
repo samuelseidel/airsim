@@ -1,5 +1,33 @@
 // Aircraft types for the simulator
 export const aircraftTypes = [
+  // Starter Aircraft (Budget tier - used/older models)
+  {
+    id: 'atr42',
+    name: 'ATR 42-500 (Used)',
+    manufacturer: 'ATR',
+    category: 'turboprop',
+    capacity: 48,
+    range: 1328,
+    speed: 510,
+    fuelBurn: 850,
+    price: 3000000,
+    maintenanceCost: 250000,
+    unlockRevenue: 0,
+  },
+  {
+    id: 'saab340',
+    name: 'Saab 340B (Used)',
+    manufacturer: 'Saab',
+    category: 'turboprop',
+    capacity: 36,
+    range: 1740,
+    speed: 467,
+    fuelBurn: 750,
+    price: 2500000,
+    maintenanceCost: 200000,
+    unlockRevenue: 0,
+  },
+
   // Turboprops (Budget tier)
   {
     id: 'atr72',
@@ -10,7 +38,7 @@ export const aircraftTypes = [
     range: 1528,
     speed: 510,
     fuelBurn: 1050,
-    price: 8000000,
+    price: 6500000,
     maintenanceCost: 400000,
     unlockRevenue: 0,
   },
@@ -23,7 +51,7 @@ export const aircraftTypes = [
     range: 2040,
     speed: 667,
     fuelBurn: 1200,
-    price: 10000000,
+    price: 8500000,
     maintenanceCost: 500000,
     unlockRevenue: 0,
   },
