@@ -64,72 +64,76 @@ Based on extensive research of common errors in react-globe.gl, Three.js, Zustan
 
 ---
 
-## 🚀 GitHub Pages Deployment
+## 🚀 Vercel Deployment
 
-### Automatic Deployment Setup
+### Why Vercel?
 
-The repository is now configured for automatic GitHub Pages deployment:
+Vercel is the optimal deployment platform for modern React apps like AirSim:
 
-1. **GitHub Actions Workflow**: `.github/workflows/deploy.yml`
-   - Triggers on push to `main`/`master` branch
-   - Builds the app with Vite
-   - Deploys to GitHub Pages
+✅ **Zero Configuration**: Auto-detects Vite, no setup needed
+✅ **Lightning Fast**: 30-60 second deployments
+✅ **Global CDN**: 100+ edge locations worldwide
+✅ **Auto HTTPS**: Free SSL certificates
+✅ **Preview Deploys**: Every PR gets unique URL
+✅ **Perfect for SPAs**: Native support for client-side routing
 
-2. **Vite Configuration**: `vite.config.js`
-   - Base path set to `/airsim/`
-   - Ensures assets load correctly on GitHub Pages
+### Quick Deploy (2 minutes)
 
-3. **Jekyll Bypass**: `public/.nojekyll`
-   - Prevents GitHub from processing files with Jekyll
-   - Required for Vite-built apps
-
-### Deployment Steps
-
-#### First-Time Setup
-
-1. **Enable GitHub Pages**:
-   ```bash
-   # Go to: https://github.com/yourusername/airsim/settings/pages
-   # Set Source to: "GitHub Actions"
+1. **Go to Vercel**:
+   ```
+   https://vercel.com/new
    ```
 
-2. **Push to Main Branch**:
-   ```bash
-   git checkout main
-   git merge claude/airline-manager-simulator-011CUvPRWUvmtC1A1TyJGpzQ
-   git push origin main
-   ```
+2. **Import Repository**:
+   - Sign in with GitHub
+   - Select `airsim` repository
+   - Click "Import"
 
-3. **Wait for Deployment**:
-   - Check Actions tab for build status
-   - Takes ~2-3 minutes for first deployment
-   - Game will be live at: `https://yourusername.github.io/airsim/`
+3. **Deploy**:
+   - Click "Deploy" (no configuration needed!)
+   - Wait ~30 seconds
+   - ✅ Live at `https://airsim.vercel.app`
 
-#### Subsequent Deployments
+### Automatic Deployments
 
-Just push to main:
-```bash
-git push origin main
+Every push to `main`:
+- Automatically builds
+- Automatically deploys
+- Live in 30-60 seconds
+
+Every pull request:
+- Gets unique preview URL
+- Updates on new commits
+- Test before merging
+
+### Configuration
+
+The project includes `vercel.json` with optimized settings:
+
+```json
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}
 ```
 
-The workflow automatically:
-1. Installs dependencies
-2. Builds production bundle
-3. Deploys to GitHub Pages
-4. Updates live site
-
-### Local Testing
-
-Test the production build locally before deploying:
-
-```bash
-# Build with GitHub Pages base path
-npm run build
-
-# Preview production build
-npm run preview
-# Opens at http://localhost:4173/airsim/
-```
+**Features**:
+- SPA routing support
+- 1-year asset caching
+- Optimized headers
+- Auto-framework detection
 
 ---
 
@@ -190,67 +194,67 @@ npm run preview
 
 ### Deployment
 - [x] Production build succeeds
-- [x] Assets load with `/airsim/` base path
-- [x] GitHub Actions workflow valid
-- [x] .nojekyll file included
+- [x] Assets load correctly
+- [x] SPA routing works
+- [x] Vercel configuration valid
 
 ---
 
 ## 📝 Files Changed
 
-### New Files (7)
-1. `.github/workflows/deploy.yml` - GitHub Actions deployment
-2. `public/.nojekyll` - Bypass Jekyll processing
+### New Files
+1. `vercel.json` - Vercel deployment configuration
+2. `VERCEL_DEPLOYMENT.md` - Detailed Vercel guide
 3. `src/components/ErrorBoundary.jsx` - Error catching
 4. `src/components/ErrorBoundary.css` - Error UI styles
 5. `ISSUES_AND_FIXES.md` - Detailed issue analysis
-6. `DEPLOYMENT_GUIDE.md` - This file
 
-### Modified Files (8)
-1. `vite.config.js` - Added base path for GitHub Pages
-2. `package.json` - Added deploy scripts
+### Modified Files
+1. `vite.config.js` - Removed base path (not needed for Vercel)
+2. `package.json` - Removed gh-pages scripts
 3. `src/components/Globe.jsx` - Fixed memory leaks, performance
 4. `src/hooks/useAutoSave.js` - Fixed excessive re-renders
 5. `src/hooks/useGameLoop.js` - Removed unnecessary dependency
 6. `src/store/gameStore.js` - Fixed import issues
 7. `src/utils/saveSystem.js` - Added private browsing detection
 8. `src/main.jsx` - Wrapped app in ErrorBoundary
-9. `README.md` - Added deployment documentation
+9. `README.md` - Updated with Vercel deployment instructions
+
+### Removed Files
+1. `.github/workflows/deploy.yml` - GitHub Actions workflow (not needed)
+2. `public/.nojekyll` - GitHub Pages specific (not needed)
 
 ---
 
 ## 🎯 Next Steps
 
 ### Immediate
-1. Merge branch to `main`
-2. Enable GitHub Pages in repository settings
-3. Verify deployment at `https://yourusername.github.io/airsim/`
+1. Push changes to repository
+2. Import to Vercel (https://vercel.com/new)
+3. Click "Deploy"
+4. Game live in 30 seconds! 🎉
 
 ### Future Enhancements (Optional)
-1. **Code Splitting**: Reduce initial bundle size
-   - Lazy load Globe component
-   - Split vendor chunks
-   - Target: < 500kb initial load
 
-2. **TypeScript Migration**: Add type safety
-   - Prevent common bugs
-   - Better IDE support
-   - Gradual migration possible
+1. **Custom Domain**:
+   - Add in Vercel dashboard
+   - Configure DNS
+   - Free HTTPS included
 
-3. **PWA Features**: Make installable
-   - Add service worker
-   - Enable offline play
-   - Home screen install
+2. **Analytics**:
+   - Enable Vercel Analytics
+   - Track page views
+   - Monitor Web Vitals
 
-4. **Analytics**: Track usage
-   - Add Google Analytics
-   - Track popular routes
-   - Monitor errors
+3. **Performance**:
+   - Code splitting
+   - Lazy loading
+   - Further optimizations
 
-5. **Testing**: Add automated tests
-   - Unit tests for game logic
-   - E2E tests for critical flows
-   - Visual regression tests
+4. **Features**:
+   - TypeScript migration
+   - PWA capabilities
+   - Offline mode
 
 ---
 
@@ -262,6 +266,7 @@ All fixes based on documented issues from:
 - [Zustand Best Practices](https://github.com/pmndrs/zustand)
 - [IndexedDB Browser Compatibility](https://caniuse.com/indexeddb)
 - [MDN Web Docs - IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
+- [Vercel Documentation](https://vercel.com/docs)
 
 ---
 
@@ -273,12 +278,18 @@ The application is now:
 - ✅ **Memory-safe**: No leaks, proper cleanup
 - ✅ **Performant**: Optimized re-renders, smooth 60 FPS
 - ✅ **Resilient**: Error boundaries, graceful degradation
-- ✅ **Deployable**: GitHub Pages ready
+- ✅ **Deploy-ready**: Vercel optimized
 - ✅ **Production-ready**: All fixes tested and verified
+
+**Deployment is now easier than ever:**
+1. Import to Vercel
+2. Click Deploy
+3. Live in 30 seconds
 
 **The game is ready for public deployment!** 🎉
 
 ---
 
 *Generated: 2025-11-08*
+*Deployment Platform: Vercel*
 *All fixes tested with production build*

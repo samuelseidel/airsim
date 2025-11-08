@@ -50,25 +50,47 @@ npm run build
 
 The game will be available at `http://localhost:5173`
 
-### Deployment to GitHub Pages
+### Deployment to Vercel
 
-The project is configured for automatic deployment to GitHub Pages:
+The project is configured for automatic deployment to Vercel:
 
-1. **Automatic Deployment** (Recommended):
-   - Push to `main` or `master` branch
-   - GitHub Actions will automatically build and deploy
-   - Game will be available at `https://yourusername.github.io/airsim/`
+#### Option 1: Automatic Deployment (Recommended)
 
-2. **Manual Configuration**:
-   - Go to repository Settings → Pages
-   - Set Source to "GitHub Actions"
-   - The workflow will run on next push
+1. **Connect to Vercel**:
+   - Go to [vercel.com](https://vercel.com) and sign in with GitHub
+   - Click "New Project"
+   - Import your `airsim` repository
+   - Vercel auto-detects Vite configuration
 
-3. **Local Preview of Production Build**:
-   ```bash
-   npm run build
-   npm run preview
-   ```
+2. **Deploy**:
+   - Click "Deploy"
+   - Vercel automatically builds and deploys
+   - Game will be live at `https://your-project.vercel.app`
+
+3. **Auto-Deploy on Push**:
+   - Every push to `main` branch automatically deploys
+   - Pull requests get preview deployments
+   - No configuration needed!
+
+#### Option 2: Vercel CLI
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy (first time)
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+#### Local Preview
+
+```bash
+npm run build
+npm run preview
+```
 
 **Note**: The game uses IndexedDB for saves, which won't work in private browsing mode.
 

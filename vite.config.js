@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/airsim/', // For GitHub Pages deployment
+  // No base path needed for Vercel - deploys to root domain
 })
