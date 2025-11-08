@@ -13,6 +13,7 @@
   z-index: 100;
   pointer-events: auto;
   backdrop-filter: blur(10px);
+  touch-action: none;
 }
 
 .top-bar-section {

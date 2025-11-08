@@ -10,6 +10,9 @@
   z-index: 50;
   pointer-events: auto;
   backdrop-filter: blur(10px);
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sidebar-section {
