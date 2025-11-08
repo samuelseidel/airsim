@@ -14,6 +14,7 @@ export default function MobileNav() {
     setShowRouteCreator,
     removeRoute,
     purchaseAircraft,
+    resetGame,
     weeklyRevenue,
   } = useGameStore();
 
@@ -24,7 +25,18 @@ export default function MobileNav() {
     }
   };
 
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to reset the game? This will delete all progress.')) {
+      resetGame();
+      setIsOpen(false);
+    }
+  };
+
   const availableTypes = [
+    { id: 'saab340', unlocked: true },
+    { id: 'atr42', unlocked: true },
+    { id: 'atr72', unlocked: true },
+    { id: 'dhc8', unlocked: true },
     { id: 'crj700', unlocked: true },
     { id: 'erj175', unlocked: true },
     { id: 'a320', unlocked: weeklyRevenue >= 10000000 },
@@ -60,6 +72,12 @@ export default function MobileNav() {
                   onClick={() => setActiveTab('fleet')}
                 >
                   Fleet
+                </button>
+                <button
+                  className="mobile-tab reset-tab"
+                  onClick={handleReset}
+                >
+                  🔄 Reset
                 </button>
               </div>
 
