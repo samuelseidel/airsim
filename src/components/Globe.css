@@ -1,0 +1,31 @@
+.globe-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.airport-tooltip,
+.route-tooltip {
+  background: rgba(0, 0, 0, 0.9);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 200px;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.airport-tooltip strong,
+.route-tooltip strong {
+  color: #00ff88;
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}

@@ -1,0 +1,243 @@
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 70px;
+  bottom: 0;
+  width: 350px;
+  background: rgba(0, 0, 0, 0.9);
+  border-left: 2px solid rgba(0, 255, 136, 0.3);
+  overflow-y: auto;
+  z-index: 50;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-section {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #00ff88;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.add-btn {
+  padding: 6px 14px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid #00ff88;
+  border-radius: 4px;
+  color: #00ff88;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-btn:hover:not(:disabled) {
+  background: rgba(0, 255, 136, 0.2);
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
+}
+
+.add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.routes-list,
+.fleet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-state {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.route-item,
+.fleet-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s;
+}
+
+.route-item:hover,
+.fleet-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.route-header,
+.fleet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.route-name,
+.fleet-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  transition: color 0.2s;
+}
+
+.delete-btn:hover {
+  color: #ff4444;
+}
+
+.route-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.route-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.route-stat-label {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.route-stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.route-stat-value.profit {
+  color: #00ff88;
+}
+
+.route-stat-value.loss {
+  color: #ff4444;
+}
+
+.fleet-type {
+  color: #888;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.fleet-condition {
+  color: #00ff88;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fleet-status {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-active {
+  color: #00ff88;
+  font-size: 12px;
+}
+
+.status-idle {
+  color: #888;
+  font-size: 12px;
+}
+
+.purchase-section {
+  margin-top: 20px;
+}
+
+.purchase-section h4 {
+  margin: 0 0 12px 0;
+  color: #888;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.purchase-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.purchase-item.locked {
+  opacity: 0.5;
+}
+
+.purchase-info {
+  flex: 1;
+}
+
+.purchase-name {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.purchase-price {
+  color: #FFD700;
+  font-size: 12px;
+}
+
+.purchase-btn {
+  padding: 6px 12px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid #00ff88;
+  border-radius: 4px;
+  color: #00ff88;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.purchase-btn:hover:not(:disabled) {
+  background: rgba(0, 255, 136, 0.2);
+}
+
+.purchase-btn:disabled {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #666;
+  cursor: not-allowed;
+}
