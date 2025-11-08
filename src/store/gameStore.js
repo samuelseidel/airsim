@@ -2,6 +2,24 @@ import { create } from 'zustand';
 import { calculateDistance, calculateRouteDemand, airports } from '../data/airports';
 import { calculateOperatingCost, getAircraftType } from '../data/aircraft';
 
+// Generate aircraft registration number
+const generateRegistration = () => {
+  const prefixes = ['N', 'D-', 'OK-', 'G-', 'F-', 'PH-', 'OE-', 'SE-', 'LN-', 'EI-'];
+  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+
+  if (prefix === 'N') {
+    // US format: N12345
+    return `N${Math.floor(10000 + Math.random() * 90000)}`;
+  } else {
+    // European format: OK-DSA
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const reg = Array.from({ length: 3 }, () =>
+      letters[Math.floor(Math.random() * letters.length)]
+    ).join('');
+    return `${prefix}${reg}`;
+  }
+};
+
 const useGameStore = create((set, get) => ({
   // Game state
   cash: 8000000, // $8M starting capital (medium difficulty)
@@ -18,6 +36,7 @@ const useGameStore = create((set, get) => ({
       id: 'aircraft-1',
       type: 'crj700',
       name: 'Jet-1',
+      registration: 'N47892',
       condition: 100, // 0-100%
       assignedRoute: null,
       totalFlightHours: 0,
@@ -147,6 +166,7 @@ const useGameStore = create((set, get) => ({
       id: `aircraft-${Date.now()}`,
       type: aircraftTypeId,
       name: `${aircraftType.name}-${state.fleet.length + 1}`,
+      registration: generateRegistration(),
       condition: 100,
       assignedRoute: null,
       totalFlightHours: 0,
@@ -281,6 +301,7 @@ const useGameStore = create((set, get) => ({
           id: 'aircraft-1',
           type: 'crj700',
           name: 'Jet-1',
+          registration: 'N47892',
           condition: 100,
           assignedRoute: null,
           totalFlightHours: 0,

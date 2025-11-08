@@ -192,49 +192,6 @@ export default function GlobeComponent({
     }).filter(Boolean)
   , [routes, hoveredRoute]);
 
-  // Track aircraft positions on routes
-  const [aircraftPositions, setAircraftPositions] = useState([]);
-
-  // Animate aircraft along routes
-  useEffect(() => {
-    if (!routes.length) return;
-
-    const animationInterval = setInterval(() => {
-      const activeAircraft = routes.filter(r => r.active).map((route, index) => {
-        const origin = airports.find(a => a.id === route.origin);
-        const destination = airports.find(a => a.id === route.destination);
-
-        if (!origin || !destination) return null;
-
-        // Calculate flight progress (0 to 1)
-        const flightDuration = (route.distance || 1000) / 800 * 3600; // Speed ~800 km/h
-        const progress = ((Date.now() / 1000) % flightDuration) / flightDuration;
-
-        // Interpolate position along great circle
-        const lat = origin.lat + (destination.lat - origin.lat) * progress;
-        const lng = origin.lng + (destination.lng - origin.lng) * progress;
-
-        // Calculate altitude (parabolic arc)
-        const distance = route.distance || 0;
-        let maxAltitudeKm = distance < 1000 ? 9 : distance < 3000 ? 10.5 : 11.5;
-        const altitudeProgress = Math.sin(progress * Math.PI); // Parabolic
-        const altitude = (maxAltitudeKm / 63) * altitudeProgress;
-
-        return {
-          id: route.id,
-          lat,
-          lng,
-          altitude,
-          color: route.profit > 0 ? '#00ff88' : '#ff8844',
-          size: 0.15,
-        };
-      }).filter(Boolean);
-
-      setAircraftPositions(activeAircraft);
-    }, 100); // Update every 100ms for smooth animation
-
-    return () => clearInterval(animationInterval);
-  }, [routes]);
 
   return (
     <div className="globe-container">
@@ -261,30 +218,6 @@ export default function GlobeComponent({
         `}
         onPointClick={point => onAirportClick && onAirportClick(point.id)}
         pointsMerge={false}
-
-        // Flying aircraft markers
-        objectsData={aircraftPositions}
-        objectLat="lat"
-        objectLng="lng"
-        objectAltitude="altitude"
-        objectLabel={d => `
-          <div class="aircraft-tooltip">
-            ✈️ In Flight
-          </div>
-        `}
-        objectThreeObject={d => {
-          // Create a simple plane icon using Three.js
-          const obj = new THREE.Mesh(
-            new THREE.ConeGeometry(0.5, 2, 8),
-            new THREE.MeshPhongMaterial({
-              color: d.color,
-              emissive: d.color,
-              emissiveIntensity: 0.5,
-            })
-          );
-          obj.rotation.x = Math.PI / 2; // Point forward
-          return obj;
-        }}
 
         // Route arcs
         arcsData={routeArcs}

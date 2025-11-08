@@ -1,0 +1,106 @@
+.flight-ticker {
+  position: fixed;
+  top: 60px; /* Below TopBar */
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: rgba(0, 20, 40, 0.95);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+  display: flex;
+  align-items: center;
+  z-index: 900;
+  overflow: hidden;
+}
+
+.flight-ticker-label {
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
+  border-right: 1px solid rgba(0, 255, 136, 0.3);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.flight-ticker-track {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.flight-ticker-content {
+  display: flex;
+  gap: 40px;
+  animation: scroll 30s linear infinite;
+  will-change: transform;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%); /* Move by 1/3 since we tripled the content */
+  }
+}
+
+.flight-ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.flight-registration {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.flight-route {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .flight-ticker {
+    top: 56px; /* Below mobile TopBar */
+    height: 36px;
+  }
+
+  .flight-ticker-label {
+    padding: 0 12px;
+    font-size: 10px;
+  }
+
+  .flight-registration {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .flight-route {
+    font-size: 11px;
+  }
+
+  .flight-ticker-content {
+    gap: 24px;
+  }
+}
+
+/* Pause animation on hover */
+.flight-ticker:hover .flight-ticker-content {
+  animation-play-state: paused;
+}
