@@ -6,9 +6,14 @@ const AUTO_SAVE_INTERVAL = 30000; // 30 seconds
 const DEBOUNCE_DELAY = 5000; // 5 seconds
 
 export default function useAutoSave() {
-  const gameState = useGameStore();
   const lastSaveTimeRef = useRef(Date.now());
   const debounceTimerRef = useRef(null);
+
+  // Only subscribe to specific fields to prevent excessive re-renders
+  const cash = useGameStore(state => state.cash);
+  const routes = useGameStore(state => state.routes);
+  const fleet = useGameStore(state => state.fleet);
+  const gameWeek = useGameStore(state => state.gameWeek);
 
   useEffect(() => {
     const performAutoSave = async () => {
@@ -17,7 +22,9 @@ export default function useAutoSave() {
 
       // Only auto-save if enough time has passed
       if (timeSinceLastSave >= AUTO_SAVE_INTERVAL) {
-        const result = await autoSave(gameState);
+        // Get full state only when actually saving
+        const fullState = useGameStore.getState();
+        const result = await autoSave(fullState);
         if (result.success) {
           lastSaveTimeRef.current = now;
           console.log('Auto-saved to slot', result.slot);
@@ -41,10 +48,5 @@ export default function useAutoSave() {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [
-    gameState.cash,
-    gameState.routes,
-    gameState.fleet,
-    gameState.gameWeek,
-  ]);
+  }, [cash, routes, fleet, gameWeek]);
 }

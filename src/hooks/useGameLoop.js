@@ -40,5 +40,5 @@ export default function useGameLoop() {
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [tick]);
+  }, []); // Empty array - tick function is stable from Zustand
 }

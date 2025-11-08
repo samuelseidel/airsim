@@ -1,0 +1,130 @@
+.error-boundary {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(20, 0, 0, 0.98), rgba(40, 0, 20, 0.98));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.error-content {
+  max-width: 600px;
+  background: rgba(0, 0, 0, 0.95);
+  border: 2px solid rgba(255, 68, 68, 0.5);
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+.error-content h1 {
+  margin: 0 0 16px 0;
+  color: #ff4444;
+  font-size: 32px;
+  text-align: center;
+}
+
+.error-message {
+  text-align: center;
+  color: #ff8888;
+  font-size: 16px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 68, 68, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.error-details {
+  margin-bottom: 32px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.error-details h3 {
+  margin: 0 0 12px 0;
+  color: #fff;
+  font-size: 16px;
+}
+
+.error-details p {
+  color: #ccc;
+  line-height: 1.6;
+}
+
+.error-details ul {
+  color: #ccc;
+  line-height: 1.8;
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.error-details li {
+  margin-bottom: 8px;
+}
+
+.error-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.error-actions .btn-primary,
+.error-actions .btn-secondary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.error-actions .btn-primary {
+  background: #ff4444;
+  color: #fff;
+}
+
+.error-actions .btn-primary:hover {
+  background: #ff6666;
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
+}
+
+.error-actions .btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.error-actions .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.error-stack {
+  margin-top: 24px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.error-stack summary {
+  color: #ff8888;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.error-stack pre {
+  color: #ccc;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 12px 0 0 0;
+}

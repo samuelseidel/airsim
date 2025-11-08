@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import Globe from 'react-globe.gl';
 import { airports } from '../data/airports';
 import './Globe.css';
@@ -11,53 +11,79 @@ export default function GlobeComponent({
   onRouteClick
 }) {
   const globeRef = useRef();
-  const [globeReady, setGlobeReady] = useState(false);
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
 
-  // Configure camera controls
+  // Handle window resize
   useEffect(() => {
-    if (globeRef.current) {
-      const controls = globeRef.current.controls();
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.minDistance = 150;
-      controls.maxDistance = 500;
-      controls.autoRotate = false;
-      controls.autoRotateSpeed = 0.5;
-      setGlobeReady(true);
-    }
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Prepare airport markers with size based on airport size
-  const airportData = airports.map(airport => ({
-    ...airport,
-    altitude: 0.01,
-    color: selectedAirport === airport.id ? '#FFD700' :
-           airport.size === 'large' ? '#00ff88' : '#00aaff',
-    size: airport.size === 'large' ? 0.3 : 0.2,
-  }));
+  // Configure camera controls with cleanup
+  useEffect(() => {
+    if (!globeRef.current) return;
 
-  // Prepare route arcs
-  const routeArcs = routes.map(route => {
-    const origin = airports.find(a => a.id === route.origin);
-    const destination = airports.find(a => a.id === route.destination);
+    const controls = globeRef.current.controls();
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 150;
+    controls.maxDistance = 500;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.5;
 
-    if (!origin || !destination) return null;
-
-    const isProfitable = route.profit > 0;
-    const isHovered = hoveredRoute === route.id;
-
-    return {
-      ...route,
-      startLat: origin.lat,
-      startLng: origin.lng,
-      endLat: destination.lat,
-      endLng: destination.lng,
-      color: isHovered ? ['#FFD700', '#FFD700'] :
-             isProfitable ? ['#00ff88', '#00ff88'] : ['#ff4444', '#ff4444'],
-      altitude: isHovered ? 0.4 : 0.3,
-      stroke: isHovered ? 3 : isProfitable ? 2 : 1.5,
+    // Cleanup function to prevent memory leaks
+    return () => {
+      if (controls && controls.dispose) {
+        controls.dispose();
+      }
     };
-  }).filter(Boolean);
+  }, []);
+
+  // Memoize airport data to prevent unnecessary recalculations
+  const airportData = useMemo(() =>
+    airports.map(airport => ({
+      ...airport,
+      altitude: 0.01,
+      color: selectedAirport === airport.id ? '#FFD700' :
+             airport.size === 'large' ? '#00ff88' : '#00aaff',
+      size: airport.size === 'large' ? 0.3 : 0.2,
+    }))
+  , [selectedAirport]);
+
+  // Memoize route arcs to prevent unnecessary recalculations
+  const routeArcs = useMemo(() =>
+    routes.map(route => {
+      const origin = airports.find(a => a.id === route.origin);
+      const destination = airports.find(a => a.id === route.destination);
+
+      if (!origin || !destination) return null;
+
+      const isProfitable = route.profit > 0;
+      const isHovered = hoveredRoute === route.id;
+
+      return {
+        ...route,
+        startLat: origin.lat,
+        startLng: origin.lng,
+        endLat: destination.lat,
+        endLng: destination.lng,
+        color: isHovered ? ['#FFD700', '#FFD700'] :
+               isProfitable ? ['#00ff88', '#00ff88'] : ['#ff4444', '#ff4444'],
+        altitude: isHovered ? 0.4 : 0.3,
+        stroke: isHovered ? 3 : isProfitable ? 2 : 1.5,
+      };
+    }).filter(Boolean)
+  , [routes, hoveredRoute]);
 
   return (
     <div className="globe-container">
@@ -109,8 +135,8 @@ export default function GlobeComponent({
           alpha: true,
           powerPreference: 'high-performance'
         }}
-        width={window.innerWidth}
-        height={window.innerHeight}
+        width={dimensions.width}
+        height={dimensions.height}
       />
     </div>
   );

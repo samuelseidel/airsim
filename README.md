@@ -50,6 +50,28 @@ npm run build
 
 The game will be available at `http://localhost:5173`
 
+### Deployment to GitHub Pages
+
+The project is configured for automatic deployment to GitHub Pages:
+
+1. **Automatic Deployment** (Recommended):
+   - Push to `main` or `master` branch
+   - GitHub Actions will automatically build and deploy
+   - Game will be available at `https://yourusername.github.io/airsim/`
+
+2. **Manual Configuration**:
+   - Go to repository Settings → Pages
+   - Set Source to "GitHub Actions"
+   - The workflow will run on next push
+
+3. **Local Preview of Production Build**:
+   ```bash
+   npm run build
+   npm run preview
+   ```
+
+**Note**: The game uses IndexedDB for saves, which won't work in private browsing mode.
+
 ## 🎯 How to Play
 
 ### Starting Out

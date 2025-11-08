@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { calculateDistance, calculateRouteDemand } from '../data/airports';
+import { calculateDistance, calculateRouteDemand, airports } from '../data/airports';
 import { calculateOperatingCost, getAircraftType } from '../data/aircraft';
 
 const useGameStore = create((set, get) => ({
@@ -236,7 +236,6 @@ const useGameStore = create((set, get) => ({
 
   // Helper functions
   getAirport: (id) => {
-    const { airports } = require('../data/airports');
     return airports.find(a => a.id === id);
   },
 

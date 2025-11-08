@@ -5,19 +5,56 @@ const DB_VERSION = 1;
 const SAVE_STORE = 'saves';
 const AUTO_SAVE_STORE = 'autoSaves';
 
+// Track IndexedDB availability (false in private browsing mode)
+let isIndexedDBAvailable = true;
+let indexedDBError = null;
+
+// Check if IndexedDB is available (fails in private browsing mode)
+async function checkIndexedDBAvailability() {
+  try {
+    const testDB = await openDB('__airsim_test__', 1);
+    await testDB.close();
+    await testDB.deleteDB;
+    return true;
+  } catch (error) {
+    console.warn('IndexedDB not available:', error.message);
+    indexedDBError = error.message;
+    return false;
+  }
+}
+
+// Initialize availability check
+checkIndexedDBAvailability().then(available => {
+  isIndexedDBAvailable = available;
+  if (!available) {
+    console.warn('Save system disabled: IndexedDB unavailable (possibly private browsing mode)');
+  }
+});
+
 // Initialize the database
 async function initDB() {
-  return openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      // Create save stores if they don't exist
-      if (!db.objectStoreNames.contains(SAVE_STORE)) {
-        db.createObjectStore(SAVE_STORE, { keyPath: 'id' });
-      }
-      if (!db.objectStoreNames.contains(AUTO_SAVE_STORE)) {
-        db.createObjectStore(AUTO_SAVE_STORE, { keyPath: 'slot' });
-      }
-    },
-  });
+  if (!isIndexedDBAvailable) {
+    throw new Error(`IndexedDB unavailable: ${indexedDBError || 'Unknown error'}. Please disable private browsing mode to use save features.`);
+  }
+
+  try {
+    return openDB(DB_NAME, DB_VERSION, {
+      upgrade(db) {
+        // Create save stores if they don't exist
+        if (!db.objectStoreNames.contains(SAVE_STORE)) {
+          db.createObjectStore(SAVE_STORE, { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains(AUTO_SAVE_STORE)) {
+          db.createObjectStore(AUTO_SAVE_STORE, { keyPath: 'slot' });
+        }
+      },
+    });
+  } catch (error) {
+    console.error('Failed to initialize IndexedDB:', error);
+    isIndexedDBAvailable = false;
+    indexedDBError = error.message;
+    throw error;
+  }
 }
 
 // Serialize game state for saving
