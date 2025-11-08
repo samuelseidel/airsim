@@ -171,20 +171,20 @@ export default function GlobeComponent({
       const lat = origin.lat + (destination.lat - origin.lat) * routeProgress;
       const lng = origin.lng + (destination.lng - origin.lng) * routeProgress;
 
-      // Calculate altitude based on route progress (parabolic arc)
+      // Calculate altitude based on route progress (nearly flat, realistic)
       const distance = route.distance || 0;
       let maxAltitude;
 
-      // Realistic but visible flight altitudes (much reduced from before)
+      // Very low altitudes to match realistic flight paths
       if (distance < 1000) {
-        maxAltitude = 0.02; // Short-haul: lower arc
+        maxAltitude = 0.005; // Short-haul: very low, almost flat
       } else if (distance < 3000) {
-        maxAltitude = 0.03; // Medium-haul: medium arc
+        maxAltitude = 0.008; // Medium-haul: slightly higher but still nearly flat
       } else {
-        maxAltitude = 0.04; // Long-haul: higher arc
+        maxAltitude = 0.01; // Long-haul: barely visible arc
       }
 
-      // Parabolic altitude (highest at midpoint)
+      // Gentle parabolic altitude (highest at midpoint but very subtle)
       const altitudeMultiplier = Math.sin(routeProgress * Math.PI);
       const altitude = maxAltitude * altitudeMultiplier;
 
@@ -228,20 +228,23 @@ export default function GlobeComponent({
       const isActive = route.active;
 
       // Calculate realistic flight altitude based on distance
-      // Using much lower values for a flatter, more realistic arc appearance
+      // Real commercial flights: ~35,000-42,000 ft (10-13 km)
+      // Earth radius: 6,371 km, Globe radius: 100 units
+      // Normalized: (10-13 km / 6371 km) * 100 = 0.15-0.20 units
+      // Using very small values for almost flat, realistic appearance
       const distance = route.distance || 0;
       let normalizedAltitude;
 
       if (distance < 1000) {
-        normalizedAltitude = 0.02; // Short-haul: lower arc
+        normalizedAltitude = 0.005; // Short-haul: very low, almost flat
       } else if (distance < 3000) {
-        normalizedAltitude = 0.03; // Medium-haul: medium arc
+        normalizedAltitude = 0.008; // Medium-haul: slightly higher but still nearly flat
       } else {
-        normalizedAltitude = 0.04; // Long-haul: higher arc but still relatively flat
+        normalizedAltitude = 0.01; // Long-haul: barely visible arc
       }
 
       // Add slight boost for hover effect
-      const finalAltitude = isHovered ? normalizedAltitude * 1.3 : normalizedAltitude;
+      const finalAltitude = isHovered ? normalizedAltitude * 1.5 : normalizedAltitude;
 
       // Bright, clear colors for all routes
       let routeColor;
