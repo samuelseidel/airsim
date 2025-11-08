@@ -120,3 +120,14 @@
   border-color: #00ff88;
   color: #00ff88;
 }
+
+.reset-btn {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: #ff4444;
+  color: #ff4444;
+}
+
+.reset-btn:hover {
+  background: rgba(255, 68, 68, 0.2);
+  box-shadow: 0 0 12px rgba(255, 68, 68, 0.3);
+}

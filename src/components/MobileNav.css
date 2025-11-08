@@ -156,6 +156,16 @@
   border: 1px solid rgba(0, 255, 136, 0.3);
 }
 
+.mobile-tab.reset-tab {
+  flex: 0.6;
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.mobile-tab.reset-tab:active {
+  background: rgba(255, 68, 68, 0.1);
+}
+
 /* Content */
 .mobile-content {
   flex: 1;

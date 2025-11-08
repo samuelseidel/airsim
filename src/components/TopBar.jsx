@@ -12,6 +12,7 @@ export default function TopBar() {
     isPaused,
     setGameSpeed,
     togglePause,
+    resetGame,
     fleet,
     routes
   } = useGameStore();
@@ -24,6 +25,12 @@ export default function TopBar() {
       return `$${(amount / 1000000).toFixed(1)}M`;
     }
     return `$${(amount / 1000).toFixed(0)}K`;
+  };
+
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to reset the game? This will delete all progress.')) {
+      resetGame();
+    }
   };
 
   return (
@@ -72,6 +79,13 @@ export default function TopBar() {
             </button>
           ))}
         </div>
+
+        <button
+          className="control-btn reset-btn"
+          onClick={handleReset}
+        >
+          🔄 Reset
+        </button>
       </div>
     </div>
   );

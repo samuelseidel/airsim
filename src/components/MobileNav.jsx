@@ -14,6 +14,7 @@ export default function MobileNav() {
     setShowRouteCreator,
     removeRoute,
     purchaseAircraft,
+    resetGame,
     weeklyRevenue,
   } = useGameStore();
 
@@ -21,6 +22,13 @@ export default function MobileNav() {
     const type = getAircraftType(aircraftTypeId);
     if (window.confirm(`Purchase ${type.name} for $${(type.price / 1000000).toFixed(1)}M?`)) {
       purchaseAircraft(aircraftTypeId);
+    }
+  };
+
+  const handleReset = () => {
+    if (window.confirm('Are you sure you want to reset the game? This will delete all progress.')) {
+      resetGame();
+      setIsOpen(false);
     }
   };
 
@@ -64,6 +72,12 @@ export default function MobileNav() {
                   onClick={() => setActiveTab('fleet')}
                 >
                   Fleet
+                </button>
+                <button
+                  className="mobile-tab reset-tab"
+                  onClick={handleReset}
+                >
+                  🔄 Reset
                 </button>
               </div>
 
