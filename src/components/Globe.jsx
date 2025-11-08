@@ -18,10 +18,20 @@ export default function GlobeComponent({
     height: window.innerHeight
   });
   const [planePositions, setPlanePositions] = useState([]);
+  const [animationTime, setAnimationTime] = useState(0);
 
   // Get game time for day/night cycle and active routes
   const gameTime = useGameStore(state => state.gameTime);
   const fleet = useGameStore(state => state.fleet);
+
+  // Animation loop for plane marker effects
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimationTime(Date.now() * 0.001);
+    }, 50); // Update 20 times per second for smooth animation
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Handle window resize
   useEffect(() => {
@@ -225,6 +235,7 @@ export default function GlobeComponent({
 
       const isProfitable = route.profit > 0;
       const isHovered = hoveredRoute === route.id;
+      const isActive = route.active;
 
       // Calculate realistic flight altitude based on distance
       // Using much lower values for a flatter, more realistic arc appearance
@@ -242,16 +253,27 @@ export default function GlobeComponent({
       // Add slight boost for hover effect
       const finalAltitude = isHovered ? normalizedAltitude * 1.3 : normalizedAltitude;
 
+      // Enhanced colors for active routes with glow effect
+      let routeColor;
+      if (isHovered) {
+        routeColor = ['#FFD700', '#FFD700'];
+      } else if (isActive) {
+        // Active routes are brighter and more vibrant
+        routeColor = isProfitable ? ['#00ffaa', '#00ff88'] : ['#ff6666', '#ff4444'];
+      } else {
+        // Inactive routes are dimmer
+        routeColor = isProfitable ? ['#00cc77', '#00aa66'] : ['#cc3333', '#aa2222'];
+      }
+
       return {
         ...route,
         startLat: origin.lat,
         startLng: origin.lng,
         endLat: destination.lat,
         endLng: destination.lng,
-        color: isHovered ? ['#FFD700', '#FFD700'] :
-               isProfitable ? ['#00ff88', '#00ff88'] : ['#ff4444', '#ff4444'],
+        color: routeColor,
         altitude: finalAltitude,
-        stroke: isHovered ? 3 : isProfitable ? 2 : 1.5,
+        stroke: isHovered ? 3.5 : isActive ? 2.5 : 1.5,
       };
     }).filter(Boolean)
   , [routes, hoveredRoute]);
@@ -317,26 +339,70 @@ export default function GlobeComponent({
           </div>
         `}
         objectThreeObject={d => {
-          // Create a small glowing sphere for the plane
-          const geometry = new THREE.SphereGeometry(0.3, 16, 16);
-          const material = new THREE.MeshBasicMaterial({
+          // Create a group to hold all visual elements
+          const group = new THREE.Group();
+
+          // Core plane marker (bright golden sphere)
+          const coreGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+          const coreMaterial = new THREE.MeshBasicMaterial({
             color: 0xFFD700,
             transparent: true,
-            opacity: 0.9
+            opacity: 1
           });
-          const sphere = new THREE.Mesh(geometry, material);
+          const core = new THREE.Mesh(coreGeometry, coreMaterial);
+          group.add(core);
 
-          // Add a glow effect
-          const glowGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+          // Inner glow (pulsing)
+          const glowGeometry = new THREE.SphereGeometry(0.7, 16, 16);
           const glowMaterial = new THREE.MeshBasicMaterial({
             color: 0xFFD700,
             transparent: true,
-            opacity: 0.3
+            opacity: 0.5
           });
           const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-          sphere.add(glow);
+          group.add(glow);
 
-          return sphere;
+          // Outer glow ring (larger, more subtle)
+          const outerGlowGeometry = new THREE.SphereGeometry(1.2, 16, 16);
+          const outerGlowMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFFAA00,
+            transparent: true,
+            opacity: 0.2
+          });
+          const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+          group.add(outerGlow);
+
+          // Add expanding ring animation
+          const ringGeometry = new THREE.RingGeometry(0.8, 1.0, 32);
+          const ringMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFFD700,
+            transparent: true,
+            opacity: 0.6,
+            side: THREE.DoubleSide
+          });
+          const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+          ring.rotation.x = Math.PI / 2; // Rotate to be horizontal
+          group.add(ring);
+
+          // Animate the glows and ring using animation time
+          glow.scale.set(
+            1 + Math.sin(animationTime * 2) * 0.2,
+            1 + Math.sin(animationTime * 2) * 0.2,
+            1 + Math.sin(animationTime * 2) * 0.2
+          );
+          outerGlow.scale.set(
+            1 + Math.sin(animationTime * 1.5) * 0.3,
+            1 + Math.sin(animationTime * 1.5) * 0.3,
+            1 + Math.sin(animationTime * 1.5) * 0.3
+          );
+          ring.scale.set(
+            1 + Math.sin(animationTime * 3) * 0.3,
+            1 + Math.sin(animationTime * 3) * 0.3,
+            1 + Math.sin(animationTime * 3) * 0.3
+          );
+          ring.material.opacity = 0.6 - Math.abs(Math.sin(animationTime * 3)) * 0.4;
+
+          return group;
         }}
 
         // Performance optimizations
