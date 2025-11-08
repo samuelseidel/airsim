@@ -69,6 +69,40 @@ export default function RouteCreator() {
 
   const routeInfo = getRouteInfo();
 
+  // Get available destinations based on aircraft range
+  const getAvailableDestinations = () => {
+    if (!origin || !selectedAircraft) {
+      // No filtering if origin or aircraft not selected
+      return airports.map(airport => ({
+        ...airport,
+        isReachable: true,
+        distance: null,
+      }));
+    }
+
+    const originAirport = airports.find(a => a.id === origin);
+    const aircraft = fleet.find(a => a.id === selectedAircraft);
+    const aircraftType = getAircraftType(aircraft?.type);
+
+    if (!originAirport || !aircraftType) return [];
+
+    return airports.map(airport => {
+      const distance = calculateDistance(
+        originAirport.lat, originAirport.lng,
+        airport.lat, airport.lng
+      );
+
+      return {
+        ...airport,
+        distance: Math.round(distance),
+        isReachable: distance <= aircraftType.range,
+      };
+    });
+  };
+
+  const availableDestinations = getAvailableDestinations();
+  const reachableCount = availableDestinations.filter(d => d.isReachable && d.id !== origin).length;
+
   return (
     <div className="route-creator-overlay" onClick={() => setShowRouteCreator(false)}>
       <div className="route-creator" onClick={(e) => e.stopPropagation()}>
@@ -78,6 +112,21 @@ export default function RouteCreator() {
         </div>
 
         <div className="route-creator-body">
+          <div className="form-group">
+            <label>Aircraft</label>
+            <select value={selectedAircraft} onChange={(e) => setSelectedAircraft(e.target.value)}>
+              <option value="">Select aircraft...</option>
+              {availableAircraft.map(aircraft => {
+                const type = getAircraftType(aircraft.type);
+                return (
+                  <option key={aircraft.id} value={aircraft.id}>
+                    {aircraft.name} - {type.name} ({type.capacity} seats, {type.range}km range)
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
           <div className="form-group">
             <label>Origin Airport</label>
             <select value={origin} onChange={(e) => setOrigin(e.target.value)}>
@@ -91,29 +140,29 @@ export default function RouteCreator() {
           </div>
 
           <div className="form-group">
-            <label>Destination Airport</label>
-            <select value={destination} onChange={(e) => setDestination(e.target.value)}>
-              <option value="">Select destination...</option>
-              {airports.map(airport => (
-                <option key={airport.id} value={airport.id} disabled={airport.id === origin}>
-                  {airport.id} - {airport.name} ({airport.city})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Aircraft</label>
-            <select value={selectedAircraft} onChange={(e) => setSelectedAircraft(e.target.value)}>
-              <option value="">Select aircraft...</option>
-              {availableAircraft.map(aircraft => {
-                const type = getAircraftType(aircraft.type);
-                return (
-                  <option key={aircraft.id} value={aircraft.id}>
-                    {aircraft.name} - {type.name} ({type.capacity} seats, {type.range}km range)
+            <label>
+              Destination Airport
+              {selectedAircraft && origin && (
+                <span className="destination-count"> ({reachableCount} reachable)</span>
+              )}
+            </label>
+            <select
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              disabled={!origin || !selectedAircraft}
+            >
+              <option value="">
+                {!selectedAircraft ? 'Select aircraft first...' :
+                 !origin ? 'Select origin first...' :
+                 'Select destination...'}
+              </option>
+              {availableDestinations
+                .filter(airport => airport.isReachable && airport.id !== origin)
+                .map(airport => (
+                  <option key={airport.id} value={airport.id}>
+                    {airport.id} - {airport.name} ({airport.city}) - {airport.distance}km
                   </option>
-                );
-              })}
+                ))}
             </select>
           </div>
 

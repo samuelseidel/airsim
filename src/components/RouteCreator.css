@@ -120,6 +120,12 @@
   letter-spacing: 0.5px;
 }
 
+.destination-count {
+  color: #00ff88;
+  font-weight: 700;
+  text-transform: none;
+}
+
 .form-group select,
 .form-group input {
   width: 100%;
