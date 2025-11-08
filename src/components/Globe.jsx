@@ -17,9 +17,11 @@ export default function GlobeComponent({
     width: window.innerWidth,
     height: window.innerHeight
   });
+  const [planePositions, setPlanePositions] = useState([]);
 
-  // Get game time for day/night cycle
+  // Get game time for day/night cycle and active routes
   const gameTime = useGameStore(state => state.gameTime);
+  const fleet = useGameStore(state => state.fleet);
 
   // Handle window resize
   useEffect(() => {
@@ -133,6 +135,75 @@ export default function GlobeComponent({
     };
   }, [gameTime]); // Update lighting when game time changes
 
+  // Calculate plane positions along routes
+  useEffect(() => {
+    if (!routes || routes.length === 0) {
+      setPlanePositions([]);
+      return;
+    }
+
+    const activeRoutes = routes.filter(r => r.active);
+
+    const positions = activeRoutes.map(route => {
+      const origin = airports.find(a => a.id === route.origin);
+      const destination = airports.find(a => a.id === route.destination);
+
+      if (!origin || !destination) return null;
+
+      // Calculate flight duration in seconds
+      const flightDurationSeconds = (route.distance / 800) * 3600; // Assuming avg speed 800 km/h
+
+      // Calculate how many times the flight has completed
+      const cycleTime = flightDurationSeconds * 2; // Round trip time
+      const progress = (gameTime % cycleTime) / cycleTime;
+
+      // Calculate position along the route (0 to 1)
+      let routeProgress;
+      if (progress < 0.5) {
+        // Outbound flight
+        routeProgress = progress * 2;
+      } else {
+        // Return flight (reverse direction)
+        routeProgress = 1 - ((progress - 0.5) * 2);
+      }
+
+      // Interpolate position
+      const lat = origin.lat + (destination.lat - origin.lat) * routeProgress;
+      const lng = origin.lng + (destination.lng - origin.lng) * routeProgress;
+
+      // Calculate altitude based on route progress (parabolic arc)
+      const distance = route.distance || 0;
+      let maxAltitude;
+
+      // Realistic but visible flight altitudes (much reduced from before)
+      if (distance < 1000) {
+        maxAltitude = 0.02; // Short-haul: lower arc
+      } else if (distance < 3000) {
+        maxAltitude = 0.03; // Medium-haul: medium arc
+      } else {
+        maxAltitude = 0.04; // Long-haul: higher arc
+      }
+
+      // Parabolic altitude (highest at midpoint)
+      const altitudeMultiplier = Math.sin(routeProgress * Math.PI);
+      const altitude = maxAltitude * altitudeMultiplier;
+
+      // Get aircraft registration
+      const aircraft = fleet.find(a => a.id === route.aircraftId);
+
+      return {
+        id: route.id,
+        lat,
+        lng,
+        altitude,
+        registration: aircraft?.registration || 'N/A',
+        route: `${route.origin} → ${route.destination}`,
+      };
+    }).filter(Boolean);
+
+    setPlanePositions(positions);
+  }, [routes, gameTime, fleet]);
+
   // Memoize airport data to prevent unnecessary recalculations
   const airportData = useMemo(() =>
     airports.map(airport => ({
@@ -156,27 +227,20 @@ export default function GlobeComponent({
       const isHovered = hoveredRoute === route.id;
 
       // Calculate realistic flight altitude based on distance
-      // Commercial aircraft cruise altitudes:
-      // Short-haul (< 1000 km): 25,000-35,000 ft (7.6-10.7 km)
-      // Medium-haul (1000-3000 km): 30,000-40,000 ft (9.1-12.2 km)
-      // Long-haul (> 3000 km): 35,000-42,000 ft (10.7-12.8 km)
+      // Using much lower values for a flatter, more realistic arc appearance
       const distance = route.distance || 0;
-      let cruisingAltitudeKm;
+      let normalizedAltitude;
 
       if (distance < 1000) {
-        cruisingAltitudeKm = 9; // ~30,000 ft
+        normalizedAltitude = 0.02; // Short-haul: lower arc
       } else if (distance < 3000) {
-        cruisingAltitudeKm = 10.5; // ~35,000 ft
+        normalizedAltitude = 0.03; // Medium-haul: medium arc
       } else {
-        cruisingAltitudeKm = 11.5; // ~38,000 ft
+        normalizedAltitude = 0.04; // Long-haul: higher arc but still relatively flat
       }
 
-      // Convert to normalized altitude (relative to globe radius of 100 units)
-      // Divide by ~63 to get proper scale (Earth radius ~6371km, globe radius ~100 units)
-      const normalizedAltitude = cruisingAltitudeKm / 63;
-
       // Add slight boost for hover effect
-      const finalAltitude = isHovered ? normalizedAltitude * 1.2 : normalizedAltitude;
+      const finalAltitude = isHovered ? normalizedAltitude * 1.3 : normalizedAltitude;
 
       return {
         ...route,
@@ -240,6 +304,40 @@ export default function GlobeComponent({
           </div>
         `}
         onArcClick={arc => onRouteClick && onRouteClick(arc.id)}
+
+        // Plane markers
+        objectsData={planePositions}
+        objectLat="lat"
+        objectLng="lng"
+        objectAltitude="altitude"
+        objectLabel={d => `
+          <div class="plane-tooltip">
+            <strong>${d.registration}</strong><br/>
+            ${d.route}
+          </div>
+        `}
+        objectThreeObject={d => {
+          // Create a small glowing sphere for the plane
+          const geometry = new THREE.SphereGeometry(0.3, 16, 16);
+          const material = new THREE.MeshBasicMaterial({
+            color: 0xFFD700,
+            transparent: true,
+            opacity: 0.9
+          });
+          const sphere = new THREE.Mesh(geometry, material);
+
+          // Add a glow effect
+          const glowGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+          const glowMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFFD700,
+            transparent: true,
+            opacity: 0.3
+          });
+          const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+          sphere.add(glow);
+
+          return sphere;
+        }}
 
         // Performance optimizations
         rendererConfig={{

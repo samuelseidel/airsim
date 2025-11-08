@@ -9,7 +9,8 @@
 }
 
 .airport-tooltip,
-.route-tooltip {
+.route-tooltip,
+.plane-tooltip {
   background: rgba(0, 0, 0, 0.9);
   padding: 12px;
   border-radius: 8px;
@@ -22,10 +23,19 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
+.plane-tooltip {
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
 .airport-tooltip strong,
-.route-tooltip strong {
+.route-tooltip strong,
+.plane-tooltip strong {
   color: #00ff88;
   display: block;
   margin-bottom: 4px;
   font-size: 13px;
+}
+
+.plane-tooltip strong {
+  color: #FFD700;
 }
