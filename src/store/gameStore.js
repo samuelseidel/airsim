@@ -31,19 +31,7 @@ const useGameStore = create((set, get) => ({
   gameWeek: 1,
 
   // Fleet
-  fleet: [
-    {
-      id: 'aircraft-1',
-      type: 'crj700',
-      name: 'Jet-1',
-      registration: 'N47892',
-      condition: 100, // 0-100%
-      assignedRoute: null,
-      totalFlightHours: 0,
-      hoursSinceService: 0,
-      location: 'JFK', // current airport
-    }
-  ],
+  fleet: [], // Start with no aircraft - player must purchase their first plane
 
   // Routes
   routes: [],
@@ -296,19 +284,7 @@ const useGameStore = create((set, get) => ({
       gameSpeed: 5,
       isPaused: false,
       gameWeek: 1,
-      fleet: [
-        {
-          id: 'aircraft-1',
-          type: 'crj700',
-          name: 'Jet-1',
-          registration: 'N47892',
-          condition: 100,
-          assignedRoute: null,
-          totalFlightHours: 0,
-          hoursSinceService: 0,
-          location: 'JFK',
-        }
-      ],
+      fleet: [], // Start with no aircraft
       routes: [],
       nextRouteId: 1,
       staff: {
