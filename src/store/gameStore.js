@@ -36,6 +36,7 @@ const useGameStore = create((set, get) => ({
   // Routes
   routes: [],
   nextRouteId: 1,
+  nextFlightNumber: 100, // Start flight numbers at AS 100
 
   // Staff
   staff: {
@@ -84,8 +85,12 @@ const useGameStore = create((set, get) => ({
     const totalTripTime = flightHours * 2 + turnaroundTime; // round trip + turnaround
     const flightsPerDay = Math.floor(24 / totalTripTime);
 
+    // Generate airline-style flight number (AS = AirSim)
+    const flightNumber = `AS ${state.nextFlightNumber}`;
+
     const route = {
       id: `route-${state.nextRouteId}`,
+      flightNumber,
       origin,
       destination,
       aircraftId,
@@ -113,6 +118,7 @@ const useGameStore = create((set, get) => ({
     set((state) => ({
       routes: [...state.routes, route],
       nextRouteId: state.nextRouteId + 1,
+      nextFlightNumber: state.nextFlightNumber + 1,
       fleet: state.fleet.map(a => a.id === aircraftId ? aircraft : a),
       showRouteCreator: false,
     }));
@@ -287,6 +293,7 @@ const useGameStore = create((set, get) => ({
       fleet: [], // Start with no aircraft
       routes: [],
       nextRouteId: 1,
+      nextFlightNumber: 100,
       staff: {
         pilots: { count: 10, satisfaction: 80 },
         crew: { count: 20, satisfaction: 80 },

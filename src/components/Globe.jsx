@@ -19,6 +19,7 @@ export default function GlobeComponent({
     height: window.innerHeight
   });
   const [planePositions, setPlanePositions] = useState([]);
+  const [cameraDistance, setCameraDistance] = useState(250); // Track zoom level
 
   // Get game time for day/night cycle and active routes
   const gameTime = useGameStore(state => state.gameTime);
@@ -49,8 +50,24 @@ export default function GlobeComponent({
     controls.autoRotate = false;
     controls.autoRotateSpeed = 0.5;
 
+    // Track camera distance for zoom-responsive sizing
+    const updateCameraDistance = () => {
+      if (globeRef.current) {
+        const camera = globeRef.current.camera();
+        const distance = camera.position.length();
+        setCameraDistance(distance);
+      }
+    };
+
+    // Update on control changes
+    controls.addEventListener('change', updateCameraDistance);
+
+    // Initial update
+    updateCameraDistance();
+
     // Cleanup function to prevent memory leaks
     return () => {
+      controls.removeEventListener('change', updateCameraDistance);
       if (controls && controls.dispose) {
         controls.dispose();
       }
@@ -236,15 +253,23 @@ export default function GlobeComponent({
   }, [routes, gameTime, fleet]);
 
   // Memoize airport data to prevent unnecessary recalculations
-  const airportData = useMemo(() =>
-    airports.map(airport => ({
+  const airportData = useMemo(() => {
+    // Calculate zoom-responsive size multiplier
+    // Camera distance ranges from 150 (zoomed in) to 500 (zoomed out)
+    // We want larger markers when zoomed out, smaller when zoomed in
+    const minDistance = 150;
+    const maxDistance = 500;
+    const normalizedZoom = (cameraDistance - minDistance) / (maxDistance - minDistance);
+    const sizeMultiplier = 1 + normalizedZoom * 2; // 1x at min zoom, 3x at max zoom
+
+    return airports.map(airport => ({
       ...airport,
       altitude: 0.01,
       color: selectedAirport === airport.id ? '#FFD700' :
              airport.size === 'large' ? '#00ff88' : '#00aaff',
-      size: airport.size === 'large' ? 0.3 : 0.2,
-    }))
-  , [selectedAirport]);
+      size: (airport.size === 'large' ? 0.3 : 0.2) * sizeMultiplier,
+    }));
+  }, [selectedAirport, cameraDistance]);
 
   // Memoize route arcs to prevent unnecessary recalculations
   const routeArcs = useMemo(() =>
@@ -355,46 +380,37 @@ export default function GlobeComponent({
           </div>
         `}
         objectThreeObject={d => {
-          // Create arrow-shaped plane marker (radar style)
+          // Create 3D cone-shaped plane marker that's visible from all angles
           const group = new THREE.Group();
 
-          // Create arrow shape pointing up (will be rotated based on bearing)
-          const arrowShape = new THREE.Shape();
-          arrowShape.moveTo(0, 0.8);    // Tip of arrow
-          arrowShape.lineTo(-0.4, -0.4); // Left wing
-          arrowShape.lineTo(-0.15, -0.4); // Left stabilizer inner
-          arrowShape.lineTo(-0.15, -0.7); // Left stabilizer
-          arrowShape.lineTo(0.15, -0.7);  // Right stabilizer
-          arrowShape.lineTo(0.15, -0.4);  // Right stabilizer inner
-          arrowShape.lineTo(0.4, -0.4);   // Right wing
-          arrowShape.lineTo(0, 0.8);     // Back to tip
-
-          const arrowGeometry = new THREE.ShapeGeometry(arrowShape);
-          const arrowMaterial = new THREE.MeshBasicMaterial({
+          // Main cone (arrow/plane shape)
+          const coneGeometry = new THREE.ConeGeometry(0.4, 1.2, 8);
+          const coneMaterial = new THREE.MeshBasicMaterial({
             color: 0x00ff88,
-            side: THREE.DoubleSide
+            transparent: false
           });
-          const arrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
+          const cone = new THREE.Mesh(coneGeometry, coneMaterial);
 
-          // Rotate arrow to face the bearing direction
-          // Convert bearing to radians and rotate around Z axis
-          const bearingRad = (d.bearing - 90) * (Math.PI / 180); // -90 to align with our arrow shape
-          arrow.rotation.z = -bearingRad;
+          // Rotate cone to point "up" initially (along Y axis)
+          cone.rotation.x = 0;
 
-          group.add(arrow);
+          group.add(cone);
 
-          // Add glow outline
-          const outlineGeometry = arrowGeometry.clone();
-          const outlineMaterial = new THREE.MeshBasicMaterial({
+          // Add glowing outline sphere for better visibility
+          const glowGeometry = new THREE.SphereGeometry(0.6, 16, 16);
+          const glowMaterial = new THREE.MeshBasicMaterial({
             color: 0x00ff88,
             transparent: true,
-            opacity: 0.4,
-            side: THREE.DoubleSide
+            opacity: 0.3
           });
-          const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
-          outline.scale.set(1.3, 1.3, 1);
-          outline.rotation.z = -bearingRad;
-          group.add(outline);
+          const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+          group.add(glow);
+
+          // Rotate the entire group to face the bearing direction
+          // The bearing is already calculated, we need to rotate the group
+          // Convert to radians for Three.js
+          const bearingRad = (d.bearing) * (Math.PI / 180);
+          group.rotation.z = bearingRad;
 
           return group;
         }}
