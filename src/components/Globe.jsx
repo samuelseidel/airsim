@@ -151,18 +151,18 @@ export default function GlobeComponent({
   // Memoize airport data to prevent unnecessary recalculations
   const airportData = useMemo(() => {
     // Calculate size multiplier based on camera distance
-    // minDistance = 150, maxDistance = 500
-    // When zoomed out (distance closer to 500), make airports bigger
-    // When zoomed in (distance closer to 150), make airports normal size
-    const zoomFactor = Math.max(1, cameraDistance / 250); // Normalize around 250 (mid-range)
+    const zoomFactor = Math.max(0.8, Math.min(2, cameraDistance / 250));
 
     return airports.map(airport => {
-      const baseSize = airport.size === 'large' ? 20 : 16; // Size in pixels for HTML elements
-      const adjustedSize = baseSize * zoomFactor;
+      const baseRadius = airport.size === 'large' ? 0.35 : 0.25;
+      const radius = baseRadius * zoomFactor;
 
       return {
         ...airport,
-        size: adjustedSize,
+        altitude: 0.01,
+        radius: radius,
+        color: selectedAirport === airport.id ? '#FFD700' :
+               airport.size === 'large' ? '#00ff88' : '#00aaff',
       };
     });
   }, [selectedAirport, cameraDistance]);
@@ -179,10 +179,6 @@ export default function GlobeComponent({
       const isHovered = hoveredRoute === route.id;
 
       // Calculate realistic flight altitude based on distance
-      // Commercial aircraft cruise altitudes:
-      // Short-haul (< 1000 km): 25,000-35,000 ft (7.6-10.7 km)
-      // Medium-haul (1000-3000 km): 30,000-40,000 ft (9.1-12.2 km)
-      // Long-haul (> 3000 km): 35,000-42,000 ft (10.7-12.8 km)
       const distance = route.distance || 0;
       let cruisingAltitudeKm;
 
@@ -194,11 +190,7 @@ export default function GlobeComponent({
         cruisingAltitudeKm = 11.5; // ~38,000 ft
       }
 
-      // Convert to normalized altitude (relative to globe radius of 100 units)
-      // Divide by ~63 to get proper scale (Earth radius ~6371km, globe radius ~100 units)
       const normalizedAltitude = cruisingAltitudeKm / 63;
-
-      // Add slight boost for hover effect
       const finalAltitude = isHovered ? normalizedAltitude * 1.2 : normalizedAltitude;
 
       return {
@@ -215,6 +207,35 @@ export default function GlobeComponent({
     }).filter(Boolean)
   , [routes, hoveredRoute]);
 
+  // Custom object for rendering airport markers (circle with dot)
+  const airportObject = useMemo(() => {
+    return (d) => {
+      // Create group to hold both circles
+      const group = new THREE.Group();
+
+      // Outer ring
+      const ringGeometry = new THREE.RingGeometry(d.radius * 0.7, d.radius, 32);
+      const ringMaterial = new THREE.MeshBasicMaterial({
+        color: d.color,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.8,
+      });
+      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+      group.add(ring);
+
+      // Inner dot
+      const dotGeometry = new THREE.CircleGeometry(d.radius * 0.35, 32);
+      const dotMaterial = new THREE.MeshBasicMaterial({
+        color: d.color,
+        side: THREE.DoubleSide,
+      });
+      const dot = new THREE.Mesh(dotGeometry, dotMaterial);
+      group.add(dot);
+
+      return group;
+    };
+  }, []);
 
   return (
     <div className="globe-container">
@@ -227,51 +248,24 @@ export default function GlobeComponent({
         atmosphereColor="lightskyblue"
         atmosphereAltitude={0.15}
 
-        // Airport markers using HTML elements
-        htmlElementsData={airportData}
-        htmlLat={d => d.lat}
-        htmlLng={d => d.lng}
-        htmlAltitude={0.01}
-        htmlElement={d => {
-          const el = document.createElement('div');
-          const size = d.size;
-
-          // Create circle with center dot (standard airport icon on flight maps)
-          el.style.width = `${size}px`;
-          el.style.height = `${size}px`;
-          el.style.borderRadius = '50%';
-          el.style.border = `2px solid ${selectedAirport === d.id ? '#FFD700' : d.size === 'large' ? '#00ff88' : '#00aaff'}`;
-          el.style.backgroundColor = selectedAirport === d.id ? 'rgba(255, 215, 0, 0.3)' :
-                                     d.size === 'large' ? 'rgba(0, 255, 136, 0.3)' : 'rgba(0, 170, 255, 0.3)';
-          el.style.cursor = 'pointer';
-          el.style.userSelect = 'none';
-          el.style.pointerEvents = 'auto';
-          el.style.position = 'relative';
-          // Center the marker on its geographic position
-          el.style.marginLeft = `-${size / 2}px`;
-          el.style.marginTop = `-${size / 2}px`;
-
-          // Add center dot
-          const dot = document.createElement('div');
-          dot.style.width = `${size / 3}px`;
-          dot.style.height = `${size / 3}px`;
-          dot.style.borderRadius = '50%';
-          dot.style.backgroundColor = selectedAirport === d.id ? '#FFD700' :
-                                      d.size === 'large' ? '#00ff88' : '#00aaff';
-          dot.style.position = 'absolute';
-          dot.style.top = '50%';
-          dot.style.left = '50%';
-          dot.style.transform = 'translate(-50%, -50%)';
-          dot.style.pointerEvents = 'none'; // Don't let the dot interfere with clicks
-          el.appendChild(dot);
-
-          el.title = `${d.name}\n${d.city}, ${d.country}\nPopulation: ${d.population.toLocaleString()}`;
-          el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            onAirportClick && onAirportClick(d.id);
-          });
-          return el;
-        }}
+        // Airport markers using 3D point objects (no HTML overlay!)
+        pointsData={airportData}
+        pointLat="lat"
+        pointLng="lng"
+        pointAltitude="altitude"
+        pointRadius="radius"
+        pointColor="color"
+        pointResolution={32}
+        pointsMerge={false}
+        pointLabel={d => `
+          <div class="airport-tooltip">
+            <strong>${d.name}</strong><br/>
+            ${d.city}, ${d.country}<br/>
+            Population: ${d.population.toLocaleString()}
+          </div>
+        `}
+        onPointClick={point => onAirportClick && onAirportClick(point.id)}
+        pointThreeObject={airportObject}
 
         // Route arcs
         arcsData={routeArcs}

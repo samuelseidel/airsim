@@ -8,18 +8,6 @@
   overflow: hidden;
 }
 
-/* Globe's child divs - ensure they don't block interactions */
-.globe-container > div {
-  pointer-events: none !important;
-}
-
-/* Allow canvas to capture pointer events */
-.globe-container canvas {
-  pointer-events: auto !important;
-}
-
-/* Individual HTML markers should still be clickable - handled inline */
-
 .airport-tooltip,
 .route-tooltip {
   background: rgba(0, 0, 0, 0.9);
