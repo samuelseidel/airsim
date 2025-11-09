@@ -247,6 +247,9 @@ export default function GlobeComponent({
           el.style.userSelect = 'none';
           el.style.pointerEvents = 'auto';
           el.style.position = 'relative';
+          // Center the marker on its geographic position
+          el.style.marginLeft = `-${size / 2}px`;
+          el.style.marginTop = `-${size / 2}px`;
 
           // Add center dot
           const dot = document.createElement('div');
@@ -259,10 +262,14 @@ export default function GlobeComponent({
           dot.style.top = '50%';
           dot.style.left = '50%';
           dot.style.transform = 'translate(-50%, -50%)';
+          dot.style.pointerEvents = 'none'; // Don't let the dot interfere with clicks
           el.appendChild(dot);
 
           el.title = `${d.name}\n${d.city}, ${d.country}\nPopulation: ${d.population.toLocaleString()}`;
-          el.addEventListener('click', () => onAirportClick && onAirportClick(d.id));
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onAirportClick && onAirportClick(d.id);
+          });
           return el;
         }}
 
