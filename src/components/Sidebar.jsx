@@ -11,6 +11,8 @@ export default function Sidebar() {
     removeRoute,
     purchaseAircraft,
     weeklyRevenue,
+    departFlight,
+    toggleManualMode,
   } = useGameStore();
 
   const handlePurchase = (aircraftTypeId) => {
@@ -53,34 +55,67 @@ export default function Sidebar() {
               No routes yet. Create your first route to start earning!
             </div>
           ) : (
-            routes.map(route => (
-              <div key={route.id} className="route-item">
-                <div className="route-header">
-                  <span className="route-name">
-                    {route.flightNumber && <span className="flight-number">{route.flightNumber}</span>}
-                    {route.origin} → {route.destination}
-                  </span>
-                  <button
-                    className="delete-btn"
-                    onClick={() => removeRoute(route.id)}
-                  >
-                    ×
-                  </button>
-                </div>
-                <div className="route-stats">
-                  <div className="route-stat">
-                    <span className="route-stat-label">Profit</span>
-                    <span className={`route-stat-value ${route.profit > 0 ? 'profit' : 'loss'}`}>
-                      ${Math.round(route.profit)}/day
+            routes.map(route => {
+              const statusLabels = {
+                'ready': '✈️ Ready',
+                'boarding': '👥 Boarding',
+                'taxiing': '🛫 Taxiing',
+                'enroute': '✈️ Flying',
+                'landing': '🛬 Landing',
+                'turnaround': '🔄 Turnaround'
+              };
+
+              return (
+                <div key={route.id} className="route-item">
+                  <div className="route-header">
+                    <span className="route-name">
+                      {route.flightNumber && <span className="flight-number">{route.flightNumber}</span>}
+                      {route.origin} → {route.destination}
                     </span>
+                    <button
+                      className="delete-btn"
+                      onClick={() => removeRoute(route.id)}
+                    >
+                      ×
+                    </button>
                   </div>
-                  <div className="route-stat">
-                    <span className="route-stat-label">Load</span>
-                    <span className="route-stat-value">{route.loadFactor}%</span>
+
+                  <div className="route-status">
+                    <span className={`aircraft-status status-${route.aircraftStatus || 'ready'}`}>
+                      {statusLabels[route.aircraftStatus] || statusLabels.ready}
+                    </span>
+                    {route.manualMode && route.aircraftStatus === 'ready' && (
+                      <button
+                        className="depart-btn"
+                        onClick={() => departFlight(route.id)}
+                      >
+                        Depart
+                      </button>
+                    )}
+                    <button
+                      className="auto-toggle-btn"
+                      onClick={() => toggleManualMode(route.id)}
+                      title={route.manualMode ? 'Switch to Auto' : 'Switch to Manual'}
+                    >
+                      {route.manualMode ? '🎮' : '🤖'}
+                    </button>
+                  </div>
+
+                  <div className="route-stats">
+                    <div className="route-stat">
+                      <span className="route-stat-label">Profit</span>
+                      <span className={`route-stat-value ${route.profit > 0 ? 'profit' : 'loss'}`}>
+                        ${Math.round(route.profit)}/day
+                      </span>
+                    </div>
+                    <div className="route-stat">
+                      <span className="route-stat-label">Load</span>
+                      <span className="route-stat-value">{route.loadFactor}%</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
