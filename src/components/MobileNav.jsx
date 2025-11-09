@@ -14,8 +14,10 @@ export default function MobileNav() {
     setShowRouteCreator,
     removeRoute,
     purchaseAircraft,
+    performMaintenance,
     resetGame,
     weeklyRevenue,
+    gameTime,
   } = useGameStore();
 
   const handlePurchase = (aircraftTypeId) => {
@@ -144,15 +146,44 @@ export default function MobileNav() {
                     <div className="mobile-list">
                       {fleet.map(aircraft => {
                         const type = getAircraftType(aircraft.type);
+                        const maintenanceCost = type.price * 0.02;
+                        const needsMaintenance = aircraft.hoursUntilMaintenance <= 0;
+
                         return (
-                          <div key={aircraft.id} className="mobile-fleet-item">
+                          <div key={aircraft.id} className={`mobile-fleet-item ${needsMaintenance ? 'needs-maintenance' : ''} ${aircraft.inMaintenance ? 'in-maintenance' : ''}`}>
                             <div className="mobile-fleet-header">
-                              <span className="mobile-fleet-name">{aircraft.name}</span>
+                              <span className="mobile-fleet-name">{aircraft.registration}</span>
                               <span className="mobile-fleet-condition">{aircraft.condition}%</span>
                             </div>
                             <div className="mobile-fleet-type">{type.name}</div>
+
+                            {aircraft.inMaintenance ? (
+                              <div className="mobile-maintenance-info">
+                                <span className="mobile-maintenance-status">🔧 In Maintenance</span>
+                              </div>
+                            ) : needsMaintenance ? (
+                              <div className="mobile-maintenance-info">
+                                <span className="mobile-maintenance-status warning">⚠️ Maintenance Required</span>
+                                <button
+                                  className="mobile-maintenance-btn"
+                                  onClick={() => performMaintenance(aircraft.id)}
+                                  disabled={cash < maintenanceCost}
+                                >
+                                  Maintain (${(maintenanceCost / 1000).toFixed(0)}k)
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="mobile-maintenance-info">
+                                <span className="mobile-maintenance-hours">
+                                  {Math.round(aircraft.hoursUntilMaintenance)}h until maintenance
+                                </span>
+                              </div>
+                            )}
+
                             <div className="mobile-fleet-status">
-                              {aircraft.assignedRoute ? (
+                              {aircraft.inMaintenance ? (
+                                <span className="status-maintenance">🔧 Maintenance</span>
+                              ) : aircraft.assignedRoute ? (
                                 <span className="status-active">✓ Active</span>
                               ) : (
                                 <span className="status-idle">○ Available</span>

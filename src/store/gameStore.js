@@ -120,6 +120,18 @@ const useGameStore = create((set, get) => ({
 
     if (!aircraft || !aircraftType) return;
 
+    // Check if aircraft is in maintenance
+    if (aircraft.inMaintenance) {
+      state.addNotification('Aircraft is currently in maintenance!', 'error');
+      return;
+    }
+
+    // Check if aircraft needs maintenance
+    if (aircraft.hoursUntilMaintenance <= 0) {
+      state.addNotification('Aircraft requires maintenance before flying!', 'error');
+      return;
+    }
+
     const distance = calculateDistance(
       state.getAirport(origin).lat,
       state.getAirport(origin).lng,
@@ -272,6 +284,10 @@ const useGameStore = create((set, get) => ({
       assignedRoute: null,
       totalFlightHours: 0,
       hoursSinceService: 0,
+      hoursUntilMaintenance: 500, // 500 hours until first maintenance
+      maintenanceInterval: 500, // Maintenance every 500 hours
+      inMaintenance: false,
+      maintenanceEndTime: null,
       location: 'JFK',
     };
 
@@ -287,10 +303,17 @@ const useGameStore = create((set, get) => ({
   updateFlights: (deltaTime) => {
     const state = get();
     const updatedFlights = [];
+    const flightHoursFlown = {}; // Track hours flown per aircraft
 
     state.activeFlights.forEach(flight => {
       let newFlight = { ...flight };
       const phaseParams = flight.phaseParams;
+
+      // Track flight hours for maintenance (only during actual flight phases, not turnaround)
+      if (flight.phase !== FLIGHT_PHASES.TURNAROUND) {
+        const hoursFlown = deltaTime / 3600; // Convert seconds to hours
+        flightHoursFlown[flight.aircraftId] = (flightHoursFlown[flight.aircraftId] || 0) + hoursFlown;
+      }
 
       // Update based on current phase
       switch (flight.phase) {
@@ -414,7 +437,73 @@ const useGameStore = create((set, get) => ({
       updatedFlights.push(newFlight);
     });
 
-    set({ activeFlights: updatedFlights });
+    // Update aircraft flight hours and maintenance counters
+    const updatedFleet = state.fleet.map(aircraft => {
+      const hoursFlown = flightHoursFlown[aircraft.id] || 0;
+      if (hoursFlown > 0) {
+        return {
+          ...aircraft,
+          totalFlightHours: aircraft.totalFlightHours + hoursFlown,
+          hoursSinceService: aircraft.hoursSinceService + hoursFlown,
+          hoursUntilMaintenance: Math.max(0, aircraft.hoursUntilMaintenance - hoursFlown),
+        };
+      }
+      return aircraft;
+    });
+
+    set({ activeFlights: updatedFlights, fleet: updatedFleet });
+  },
+
+  // Perform maintenance on aircraft
+  performMaintenance: (aircraftId) => {
+    const state = get();
+    const aircraft = state.fleet.find(a => a.id === aircraftId);
+
+    if (!aircraft) return;
+
+    const aircraftType = getAircraftType(aircraft.type);
+    if (!aircraftType) return;
+
+    // Calculate maintenance cost: 2% of aircraft value
+    const maintenanceCost = aircraftType.price * 0.02;
+
+    if (state.cash < maintenanceCost) {
+      state.addNotification('Insufficient funds for maintenance!', 'error');
+      return;
+    }
+
+    // Maintenance duration: 8-24 hours depending on aircraft size
+    const maintenanceDurations = {
+      turboprop: 8 * 3600,    // 8 hours
+      regional: 12 * 3600,    // 12 hours
+      narrowbody: 16 * 3600,  // 16 hours
+      widebody: 20 * 3600,    // 20 hours
+      superheavy: 24 * 3600,  // 24 hours
+    };
+    const maintenanceDuration = maintenanceDurations[aircraftType.category] || 16 * 3600;
+
+    // Remove aircraft from active routes during maintenance
+    const routeId = aircraft.assignedRoute;
+    if (routeId) {
+      state.removeRoute(routeId);
+    }
+
+    const updatedAircraft = {
+      ...aircraft,
+      inMaintenance: true,
+      maintenanceEndTime: state.gameTime + maintenanceDuration,
+      assignedRoute: null,
+    };
+
+    set((state) => ({
+      fleet: state.fleet.map(a => a.id === aircraftId ? updatedAircraft : a),
+      cash: state.cash - maintenanceCost,
+    }));
+
+    state.addNotification(
+      `Maintenance started for ${aircraft.registration}. Cost: $${maintenanceCost.toLocaleString()}`,
+      'info'
+    );
   },
 
   // Game tick (called every frame)
@@ -427,6 +516,26 @@ const useGameStore = create((set, get) => ({
 
     // Update flight simulations
     state.updateFlights(gameTimeDelta);
+
+    // Check for completed maintenance
+    const updatedFleet = state.fleet.map(aircraft => {
+      if (aircraft.inMaintenance && aircraft.maintenanceEndTime && newGameTime >= aircraft.maintenanceEndTime) {
+        state.addNotification(`${aircraft.registration} maintenance completed!`, 'success');
+        return {
+          ...aircraft,
+          inMaintenance: false,
+          maintenanceEndTime: null,
+          hoursUntilMaintenance: aircraft.maintenanceInterval,
+          hoursSinceService: 0,
+          condition: 100,
+        };
+      }
+      return aircraft;
+    });
+
+    if (updatedFleet.some((a, i) => a !== state.fleet[i])) {
+      set({ fleet: updatedFleet });
+    }
 
     // Check if week changed
     const oldWeek = Math.floor(state.gameTime / (7 * 24 * 3600));
