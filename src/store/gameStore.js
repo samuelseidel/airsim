@@ -36,7 +36,7 @@ const generateFlightNumber = () => {
 
 const useGameStore = create((set, get) => ({
   // Game state
-  cash: 8000000, // $8M starting capital (medium difficulty)
+  cash: 12000000, // $12M starting capital for better early game experience
   weeklyRevenue: 0,
   weeklyExpenses: 0,
   gameTime: 0, // in seconds
@@ -44,8 +44,20 @@ const useGameStore = create((set, get) => ({
   isPaused: false,
   gameWeek: 1,
 
-  // Fleet
-  fleet: [], // Start with no aircraft - player must purchase their first plane
+  // Fleet - Start with one basic turboprop for immediate gameplay
+  fleet: [
+    {
+      id: 'aircraft-starter-1',
+      type: 'atr42',
+      name: 'ATR 42-1',
+      registration: generateRegistration(),
+      condition: 100,
+      assignedRoute: null,
+      totalFlightHours: 0,
+      hoursSinceService: 0,
+      location: 'JFK',
+    }
+  ],
 
   // Routes
   routes: [],

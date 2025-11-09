@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import useGameStore from '../store/gameStore';
-import { getAircraftType } from '../data/aircraft';
+import { getAircraftType, getUnlockedAircraft } from '../data/aircraft';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -14,6 +14,7 @@ export default function Dashboard() {
     toggleManualMode,
     removeRoute,
     setShowRouteCreator,
+    purchaseAircraft,
     gameTime,
   } = useGameStore();
 
@@ -291,7 +292,7 @@ export default function Dashboard() {
               <div className="empty-state">
                 <div className="empty-icon">✈️</div>
                 <p>No aircraft in fleet</p>
-                <p className="empty-hint">Purchase aircraft to start operations</p>
+                <p className="empty-hint">Purchase aircraft below to start operations</p>
               </div>
             ) : (
               <div className="fleet-grid">
@@ -338,6 +339,54 @@ export default function Dashboard() {
                 })}
               </div>
             )}
+
+            {/* Purchase Aircraft Section */}
+            <div className="purchase-section">
+              <h3 className="section-title">Purchase Aircraft</h3>
+              <p className="section-subtitle">Expand your fleet with new aircraft</p>
+
+              <div className="purchase-grid">
+                {getUnlockedAircraft(weeklyRevenue).map(aircraft => {
+                  const canAfford = cash >= aircraft.price;
+
+                  return (
+                    <div key={aircraft.id} className={`purchase-card ${!canAfford ? 'locked' : ''}`}>
+                      <div className="purchase-header">
+                        <h4 className="purchase-aircraft-name">{aircraft.name}</h4>
+                        <div className="purchase-price">{formatMoney(aircraft.price)}</div>
+                      </div>
+
+                      <div className="purchase-specs">
+                        <div className="spec-row">
+                          <span className="spec-icon">👥</span>
+                          <span className="spec-value">{aircraft.capacity} passengers</span>
+                        </div>
+                        <div className="spec-row">
+                          <span className="spec-icon">🌍</span>
+                          <span className="spec-value">{aircraft.range} km range</span>
+                        </div>
+                        <div className="spec-row">
+                          <span className="spec-icon">⚡</span>
+                          <span className="spec-value">{aircraft.speed} km/h</span>
+                        </div>
+                        <div className="spec-row">
+                          <span className="spec-icon">🔧</span>
+                          <span className="spec-value">{formatMoney(aircraft.maintenanceCost)}/year</span>
+                        </div>
+                      </div>
+
+                      <button
+                        className="purchase-aircraft-btn"
+                        onClick={() => purchaseAircraft(aircraft.id)}
+                        disabled={!canAfford}
+                      >
+                        {canAfford ? 'Purchase' : 'Insufficient Funds'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
