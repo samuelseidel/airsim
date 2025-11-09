@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import Globe from './components/Globe';
-import TopBar from './components/TopBar';
-import Sidebar from './components/Sidebar';
-import MobileNav from './components/MobileNav';
+import Dashboard from './components/Dashboard';
 import RouteCreator from './components/RouteCreator';
 import Notifications from './components/Notifications';
 import WelcomeScreen from './components/WelcomeScreen';
@@ -15,33 +12,14 @@ function App() {
   useGameLoop();
   useAutoSave();
 
-  const {
-    routes,
-    selectedAirport,
-    setSelectedAirport,
-    showRouteCreator,
-  } = useGameStore();
-
-  const [hoveredRoute, setHoveredRoute] = useState(null);
+  const { showRouteCreator } = useGameStore();
   const [showWelcome, setShowWelcome] = useState(true);
 
   return (
     <div className="app">
-      <Globe
-        routes={routes}
-        selectedAirport={selectedAirport}
-        onAirportClick={setSelectedAirport}
-        hoveredRoute={hoveredRoute}
-        onRouteClick={(routeId) => console.log('Route clicked:', routeId)}
-      />
+      <Dashboard />
 
-      <div className="ui-overlay">
-        <TopBar />
-        <Sidebar />
-        <MobileNav />
-        <Notifications />
-      </div>
-
+      <Notifications />
       {showRouteCreator && <RouteCreator />}
       {showWelcome && <WelcomeScreen onClose={() => setShowWelcome(false)} />}
     </div>
