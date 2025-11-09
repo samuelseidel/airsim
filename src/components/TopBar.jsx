@@ -13,6 +13,7 @@ export default function TopBar() {
     setGameSpeed,
     togglePause,
     resetGame,
+    gameTime,
     fleet,
     routes
   } = useGameStore();
@@ -25,6 +26,20 @@ export default function TopBar() {
       return `$${(amount / 1000000).toFixed(1)}M`;
     }
     return `$${(amount / 1000).toFixed(0)}K`;
+  };
+
+  const formatTime = (seconds) => {
+    const hours = Math.floor((seconds / 3600) % 24);
+    const minutes = Math.floor((seconds / 60) % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  const getTimeIcon = (seconds) => {
+    const hours = Math.floor((seconds / 3600) % 24);
+    if (hours >= 6 && hours < 12) return '🌅'; // Morning
+    if (hours >= 12 && hours < 18) return '☀️'; // Afternoon
+    if (hours >= 18 && hours < 21) return '🌆'; // Evening
+    return '🌙'; // Night
   };
 
   const handleReset = () => {
@@ -40,6 +55,10 @@ export default function TopBar() {
       </div>
 
       <div className="top-bar-section stats">
+        <div className="stat">
+          <span className="stat-label">Time</span>
+          <span className="stat-value">{getTimeIcon(gameTime)} {formatTime(gameTime)}</span>
+        </div>
         <div className="stat">
           <span className="stat-label">Cash</span>
           <span className="stat-value cash">{formatCurrency(cash)}</span>

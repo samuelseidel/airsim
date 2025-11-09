@@ -78,33 +78,44 @@ export default function GlobeComponent({
     const sunY = 50; // Keep sun slightly above equator
     const sunZ = Math.sin(sunAngle) * sunDistance;
 
-    // Directional light (sun)
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    // Very bright directional light (sun) for dramatic day/night
+    const sunLight = new THREE.DirectionalLight(0xffffff, 3.0);
     sunLight.position.set(sunX, sunY, sunZ);
+    sunLight.castShadow = false; // Performance optimization
     scene.add(sunLight);
 
-    // Ambient light (soft fill light for dark side)
-    const ambientLight = new THREE.AmbientLight(0x404060, 0.3);
+    // Add a point light at sun position for extra brightness
+    const sunPointLight = new THREE.PointLight(0xffffdd, 2.0, 500);
+    sunPointLight.position.set(sunX, sunY, sunZ);
+    scene.add(sunPointLight);
+
+    // Very dim ambient light to make night side dark
+    const ambientLight = new THREE.AmbientLight(0x202040, 0.1);
     scene.add(ambientLight);
 
-    // Hemisphere light (sky and ground light)
-    const hemiLight = new THREE.HemisphereLight(0x4488ff, 0x002244, 0.4);
+    // Subtle hemisphere light for sky effect
+    const hemiLight = new THREE.HemisphereLight(0x6688ff, 0x001122, 0.2);
     scene.add(hemiLight);
 
-    // Add subtle atmospheric glow
+    // Add atmospheric glow on the day side
     const glowGeometry = new THREE.SphereGeometry(102, 64, 64);
     const glowMaterial = new THREE.ShaderMaterial({
       uniforms: {
-        glowColor: { value: new THREE.Color(0x88ccff) },
-        viewVector: { value: camera.position }
+        glowColor: { value: new THREE.Color(0xffdd88) }, // Warm sunrise/sunset glow
+        sunPosition: { value: new THREE.Vector3(sunX, sunY, sunZ).normalize() },
       },
       vertexShader: `
-        uniform vec3 viewVector;
+        uniform vec3 sunPosition;
         varying float intensity;
+        varying vec3 vNormal;
         void main() {
-          vec3 vNormal = normalize(normalMatrix * normal);
-          vec3 vNormel = normalize(normalMatrix * viewVector);
-          intensity = pow(0.6 - dot(vNormal, vNormel), 2.0);
+          vNormal = normalize(normalMatrix * normal);
+          vec3 vPosition = normalize((modelViewMatrix * vec4(position, 1.0)).xyz);
+
+          // Calculate intensity based on sun angle
+          float sunDot = dot(vNormal, sunPosition);
+          intensity = max(0.0, sunDot) * 0.5;
+
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
@@ -113,7 +124,7 @@ export default function GlobeComponent({
         varying float intensity;
         void main() {
           vec3 glow = glowColor * intensity;
-          gl_FragColor = vec4(glow, intensity * 0.3);
+          gl_FragColor = vec4(glow, intensity * 0.6);
         }
       `,
       side: THREE.BackSide,
@@ -127,6 +138,7 @@ export default function GlobeComponent({
     // Cleanup
     return () => {
       scene.remove(sunLight);
+      scene.remove(sunPointLight);
       scene.remove(ambientLight);
       scene.remove(hemiLight);
       scene.remove(glowMesh);
