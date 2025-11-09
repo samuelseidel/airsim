@@ -14,12 +14,10 @@ export default function TopBar() {
     togglePause,
     resetGame,
     gameTime,
-    fleet,
-    routes
+    fleet
   } = useGameStore();
 
   const weeklyProfit = weeklyRevenue - weeklyExpenses;
-  const activeRoutes = routes.filter(r => r.active).length;
 
   const formatCurrency = (amount) => {
     if (amount >= 1000000) {
@@ -72,10 +70,6 @@ export default function TopBar() {
         <div className="stat">
           <span className="stat-label">Fleet</span>
           <span className="stat-value">{fleet.length} aircraft</span>
-        </div>
-        <div className="stat">
-          <span className="stat-label">Routes</span>
-          <span className="stat-value">{activeRoutes} active</span>
         </div>
       </div>
 
