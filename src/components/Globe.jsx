@@ -229,8 +229,8 @@ export default function GlobeComponent({
 
       // Gentle parabolic altitude (highest at midpoint but very subtle)
       const altitudeMultiplier = Math.sin(routeProgress * Math.PI);
-      // Add small offset to ensure plane is always visible above the arc
-      const altitude = maxAltitude * altitudeMultiplier + 0.003;
+      // Add offset to ensure plane is always clearly visible above the arc
+      const altitude = maxAltitude * altitudeMultiplier + 0.015;
 
       // Get aircraft registration and type
       const aircraft = fleet.find(a => a.id === route.aircraftId);
@@ -383,10 +383,10 @@ export default function GlobeComponent({
           // Create 3D cone-shaped plane marker that's visible from all angles
           const group = new THREE.Group();
 
-          // Main cone (arrow/plane shape)
+          // Main cone (arrow/plane shape) - pure white for high visibility
           const coneGeometry = new THREE.ConeGeometry(0.4, 1.2, 8);
           const coneMaterial = new THREE.MeshBasicMaterial({
-            color: 0x00ff88,
+            color: 0xffffff,
             transparent: false
           });
           const cone = new THREE.Mesh(coneGeometry, coneMaterial);
@@ -396,12 +396,12 @@ export default function GlobeComponent({
 
           group.add(cone);
 
-          // Add glowing outline sphere for better visibility
+          // Add glowing outline sphere for better visibility - pure white
           const glowGeometry = new THREE.SphereGeometry(0.6, 16, 16);
           const glowMaterial = new THREE.MeshBasicMaterial({
-            color: 0x00ff88,
+            color: 0xffffff,
             transparent: true,
-            opacity: 0.3
+            opacity: 0.4
           });
           const glow = new THREE.Mesh(glowGeometry, glowMaterial);
           group.add(glow);
