@@ -178,20 +178,21 @@ export default function GlobeComponent({
       const isProfitable = route.profit > 0;
       const isHovered = hoveredRoute === route.id;
 
-      // Calculate realistic flight altitude based on distance
+      // Calculate flattened route altitude for visual clarity
       const distance = route.distance || 0;
-      let cruisingAltitudeKm;
 
+      // Use much lower altitude for flatter route visualization
+      // Base altitude: 0.02-0.05 (compared to previous 0.14-0.18)
+      let altitude;
       if (distance < 1000) {
-        cruisingAltitudeKm = 9; // ~30,000 ft
+        altitude = 0.02; // Very short routes stay close to surface
       } else if (distance < 3000) {
-        cruisingAltitudeKm = 10.5; // ~35,000 ft
+        altitude = 0.03; // Medium routes slightly elevated
       } else {
-        cruisingAltitudeKm = 11.5; // ~38,000 ft
+        altitude = 0.05; // Long routes more visible but still flat
       }
 
-      const normalizedAltitude = cruisingAltitudeKm / 63;
-      const finalAltitude = isHovered ? normalizedAltitude * 1.2 : normalizedAltitude;
+      const finalAltitude = isHovered ? altitude * 1.3 : altitude;
 
       return {
         ...route,
