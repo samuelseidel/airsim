@@ -234,13 +234,33 @@ export default function GlobeComponent({
         htmlAltitude={0.01}
         htmlElement={d => {
           const el = document.createElement('div');
-          el.innerHTML = '✈';
-          el.style.color = selectedAirport === d.id ? '#FFD700' :
-                           d.size === 'large' ? '#00ff88' : '#00aaff';
-          el.style.fontSize = `${d.size}px`;
+          const size = d.size;
+
+          // Create circle with center dot (standard airport icon on flight maps)
+          el.style.width = `${size}px`;
+          el.style.height = `${size}px`;
+          el.style.borderRadius = '50%';
+          el.style.border = `2px solid ${selectedAirport === d.id ? '#FFD700' : d.size === 'large' ? '#00ff88' : '#00aaff'}`;
+          el.style.backgroundColor = selectedAirport === d.id ? 'rgba(255, 215, 0, 0.3)' :
+                                     d.size === 'large' ? 'rgba(0, 255, 136, 0.3)' : 'rgba(0, 170, 255, 0.3)';
           el.style.cursor = 'pointer';
           el.style.userSelect = 'none';
           el.style.pointerEvents = 'auto';
+          el.style.position = 'relative';
+
+          // Add center dot
+          const dot = document.createElement('div');
+          dot.style.width = `${size / 3}px`;
+          dot.style.height = `${size / 3}px`;
+          dot.style.borderRadius = '50%';
+          dot.style.backgroundColor = selectedAirport === d.id ? '#FFD700' :
+                                      d.size === 'large' ? '#00ff88' : '#00aaff';
+          dot.style.position = 'absolute';
+          dot.style.top = '50%';
+          dot.style.left = '50%';
+          dot.style.transform = 'translate(-50%, -50%)';
+          el.appendChild(dot);
+
           el.title = `${d.name}\n${d.city}, ${d.country}\nPopulation: ${d.population.toLocaleString()}`;
           el.addEventListener('click', () => onAirportClick && onAirportClick(d.id));
           return el;

@@ -8,6 +8,28 @@
   overflow: hidden;
 }
 
+/* Ensure globe HTML elements don't interfere with UI */
+.globe-container canvas {
+  pointer-events: auto;
+}
+
+/* Globe library CSS3D renderer creates a full-screen div for HTML elements
+   This div should allow pointer events to pass through except on actual markers */
+.globe-container > div[style*="position"] {
+  pointer-events: none !important;
+}
+
+/* Allow pointer events only on the actual HTML marker elements */
+.globe-container > div[style*="position"] > div {
+  pointer-events: auto !important;
+}
+
+/* Globe library scene containers - keep at low z-index */
+.globe-container .scene-container,
+.globe-container .scene-tooltip {
+  max-z-index: 100 !important;
+}
+
 .airport-tooltip,
 .route-tooltip {
   background: rgba(0, 0, 0, 0.9);
