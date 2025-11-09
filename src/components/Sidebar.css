@@ -190,6 +190,96 @@
   font-size: 12px;
 }
 
+.status-maintenance {
+  color: #ff9800;
+  font-size: 12px;
+}
+
+.fleet-maintenance {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.maintenance-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.maintenance-status.in-progress {
+  color: #ff9800;
+}
+
+.maintenance-status.required {
+  color: #ff4444;
+}
+
+.maintenance-time {
+  font-size: 11px;
+  color: #888;
+  font-family: 'Courier New', monospace;
+}
+
+.maintenance-hours {
+  font-size: 11px;
+  color: #888;
+  font-family: 'Courier New', monospace;
+}
+
+.maintenance-hours.warning {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.maintenance-btn {
+  padding: 6px 12px;
+  background: rgba(0, 170, 255, 0.1);
+  border: 1px solid #00aaff;
+  border-radius: 4px;
+  color: #00aaff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.maintenance-btn:hover:not(:disabled) {
+  background: rgba(0, 170, 255, 0.2);
+  box-shadow: 0 0 8px rgba(0, 170, 255, 0.3);
+}
+
+.maintenance-btn.urgent {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: #ff4444;
+  color: #ff4444;
+}
+
+.maintenance-btn.urgent:hover:not(:disabled) {
+  background: rgba(255, 68, 68, 0.2);
+  box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);
+}
+
+.maintenance-btn:disabled {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #666;
+  cursor: not-allowed;
+}
+
+.fleet-item.needs-maintenance {
+  border-color: rgba(255, 68, 68, 0.5);
+  background: rgba(255, 68, 68, 0.05);
+}
+
+.fleet-item.in-maintenance {
+  border-color: rgba(255, 152, 0, 0.5);
+  background: rgba(255, 152, 0, 0.05);
+}
+
 .purchase-section {
   margin-top: 20px;
 }

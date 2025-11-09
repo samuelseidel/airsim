@@ -338,6 +338,69 @@
   font-size: 13px;
 }
 
+.status-maintenance {
+  color: #ff9800;
+  font-size: 13px;
+}
+
+.mobile-maintenance-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+.mobile-maintenance-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff9800;
+}
+
+.mobile-maintenance-status.warning {
+  color: #ff4444;
+}
+
+.mobile-maintenance-hours {
+  font-size: 12px;
+  color: #888;
+  font-family: 'Courier New', monospace;
+}
+
+.mobile-maintenance-btn {
+  padding: 12px 16px;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid #ff4444;
+  border-radius: 8px;
+  color: #ff4444;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-maintenance-btn:active:not(:disabled) {
+  background: rgba(255, 68, 68, 0.2);
+}
+
+.mobile-maintenance-btn:disabled {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #666;
+}
+
+.mobile-fleet-item.needs-maintenance {
+  border-color: rgba(255, 68, 68, 0.5);
+  background: rgba(255, 68, 68, 0.05);
+}
+
+.mobile-fleet-item.in-maintenance {
+  border-color: rgba(255, 152, 0, 0.5);
+  background: rgba(255, 152, 0, 0.05);
+}
+
 /* Purchase section */
 .mobile-purchase-section {
   margin-top: 24px;
