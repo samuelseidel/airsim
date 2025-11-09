@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import Globe from 'react-globe.gl';
 import * as THREE from 'three';
 import { airports } from '../data/airports';
+import { getAircraftType } from '../data/aircraft';
 import useGameStore from '../store/gameStore';
 import './Globe.css';
 
@@ -179,9 +180,22 @@ export default function GlobeComponent({
         routeProgress = 1 - ((progress - 0.5) * 2);
       }
 
+      // Determine direction (outbound vs return)
+      const isOutbound = progress < 0.5;
+
       // Interpolate position
       const lat = origin.lat + (destination.lat - origin.lat) * routeProgress;
       const lng = origin.lng + (destination.lng - origin.lng) * routeProgress;
+
+      // Calculate bearing/heading for arrow rotation
+      const latDiff = destination.lat - origin.lat;
+      const lngDiff = destination.lng - origin.lng;
+      // Calculate angle in degrees (0 = North, 90 = East, 180 = South, 270 = West)
+      let bearing = Math.atan2(lngDiff, latDiff) * (180 / Math.PI);
+      // Reverse direction if on return flight
+      if (!isOutbound) {
+        bearing = (bearing + 180) % 360;
+      }
 
       // Calculate altitude based on route progress (nearly flat, realistic)
       const distance = route.distance || 0;
@@ -201,14 +215,18 @@ export default function GlobeComponent({
       // Add small offset to ensure plane is always visible above the arc
       const altitude = maxAltitude * altitudeMultiplier + 0.003;
 
-      // Get aircraft registration
+      // Get aircraft registration and type
       const aircraft = fleet.find(a => a.id === route.aircraftId);
+      const aircraftType = aircraft ? getAircraftType(aircraft.type) : null;
+      const speed = aircraftType?.speed || 800; // km/h
 
       return {
         id: route.id,
         lat,
         lng,
         altitude,
+        bearing,
+        speed,
         registration: aircraft?.registration || 'N/A',
         route: `${route.origin} → ${route.destination}`,
       };
@@ -236,15 +254,9 @@ export default function GlobeComponent({
 
       if (!origin || !destination) return null;
 
-      const isProfitable = route.profit > 0;
       const isHovered = hoveredRoute === route.id;
-      const isActive = route.active;
 
       // Calculate realistic flight altitude based on distance
-      // Real commercial flights: ~35,000-42,000 ft (10-13 km)
-      // Earth radius: 6,371 km, Globe radius: 100 units
-      // Normalized: (10-13 km / 6371 km) * 100 = 0.15-0.20 units
-      // Using very small values for almost flat, realistic appearance
       const distance = route.distance || 0;
       let normalizedAltitude;
 
@@ -259,23 +271,9 @@ export default function GlobeComponent({
       // Add slight boost for hover effect
       const finalAltitude = isHovered ? normalizedAltitude * 1.5 : normalizedAltitude;
 
-      // Bright, clear colors for all routes
-      let routeColor;
-      let strokeWidth;
-
-      if (isHovered) {
-        // Golden for hovered
-        routeColor = ['#FFD700', '#FFD700'];
-        strokeWidth = 4;
-      } else if (isActive) {
-        // Bright colors for active routes
-        routeColor = isProfitable ? ['#00ff88', '#00ff88'] : ['#ff4444', '#ff4444'];
-        strokeWidth = 2.5;
-      } else {
-        // Still visible but dimmer for inactive routes
-        routeColor = isProfitable ? ['#00aa55', '#00aa55'] : ['#aa2222', '#aa2222'];
-        strokeWidth = 1.5;
-      }
+      // Simple green narrow lines matching UI style
+      const routeColor = isHovered ? ['#FFD700', '#FFD700'] : ['#00ff88', '#00ff88'];
+      const strokeWidth = isHovered ? 2 : 1;
 
       return {
         ...route,
@@ -345,44 +343,58 @@ export default function GlobeComponent({
         objectLng="lng"
         objectAltitude="altitude"
         objectLabel={d => `
-          <div class="plane-tooltip">
-            <strong>${d.registration}</strong><br/>
-            ${d.route}
+          <div class="plane-tooltip radar-style">
+            <div class="radar-header">
+              <strong>${d.registration}</strong>
+            </div>
+            <div class="radar-data">
+              <span class="radar-label">SPD:</span> <span class="radar-value">${d.speed} kt</span><br/>
+              <span class="radar-label">HDG:</span> <span class="radar-value">${Math.round(d.bearing)}°</span><br/>
+              <span class="radar-label">RTE:</span> <span class="radar-value">${d.route}</span>
+            </div>
           </div>
         `}
-        objectThreeObject={() => {
-          // Create a simple, clean plane marker
+        objectThreeObject={d => {
+          // Create arrow-shaped plane marker (radar style)
           const group = new THREE.Group();
 
-          // Core plane marker (bright golden sphere)
-          const coreGeometry = new THREE.SphereGeometry(0.5, 16, 16);
-          const coreMaterial = new THREE.MeshBasicMaterial({
-            color: 0xFFD700,
-            transparent: false,
-            opacity: 1
-          });
-          const core = new THREE.Mesh(coreGeometry, coreMaterial);
-          group.add(core);
+          // Create arrow shape pointing up (will be rotated based on bearing)
+          const arrowShape = new THREE.Shape();
+          arrowShape.moveTo(0, 0.8);    // Tip of arrow
+          arrowShape.lineTo(-0.4, -0.4); // Left wing
+          arrowShape.lineTo(-0.15, -0.4); // Left stabilizer inner
+          arrowShape.lineTo(-0.15, -0.7); // Left stabilizer
+          arrowShape.lineTo(0.15, -0.7);  // Right stabilizer
+          arrowShape.lineTo(0.15, -0.4);  // Right stabilizer inner
+          arrowShape.lineTo(0.4, -0.4);   // Right wing
+          arrowShape.lineTo(0, 0.8);     // Back to tip
 
-          // Add a subtle static glow
-          const glowGeometry = new THREE.SphereGeometry(0.8, 16, 16);
-          const glowMaterial = new THREE.MeshBasicMaterial({
-            color: 0xFFD700,
-            transparent: true,
-            opacity: 0.4
+          const arrowGeometry = new THREE.ShapeGeometry(arrowShape);
+          const arrowMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ff88,
+            side: THREE.DoubleSide
           });
-          const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-          group.add(glow);
+          const arrow = new THREE.Mesh(arrowGeometry, arrowMaterial);
 
-          // Add a larger outer glow for visibility
-          const outerGlowGeometry = new THREE.SphereGeometry(1.2, 16, 16);
-          const outerGlowMaterial = new THREE.MeshBasicMaterial({
-            color: 0xFFAA00,
+          // Rotate arrow to face the bearing direction
+          // Convert bearing to radians and rotate around Z axis
+          const bearingRad = (d.bearing - 90) * (Math.PI / 180); // -90 to align with our arrow shape
+          arrow.rotation.z = -bearingRad;
+
+          group.add(arrow);
+
+          // Add glow outline
+          const outlineGeometry = arrowGeometry.clone();
+          const outlineMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ff88,
             transparent: true,
-            opacity: 0.2
+            opacity: 0.4,
+            side: THREE.DoubleSide
           });
-          const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
-          group.add(outerGlow);
+          const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+          outline.scale.set(1.3, 1.3, 1);
+          outline.rotation.z = -bearingRad;
+          group.add(outline);
 
           return group;
         }}

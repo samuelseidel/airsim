@@ -40,3 +40,39 @@
 .plane-tooltip strong {
   color: #FFD700;
 }
+
+/* Radar-style plane tooltip */
+.plane-tooltip.radar-style {
+  background: rgba(0, 20, 10, 0.95);
+  border: 1px solid #00ff88;
+  font-family: 'Courier New', monospace;
+  min-width: 180px;
+}
+
+.radar-header {
+  background: rgba(0, 255, 136, 0.2);
+  padding: 4px 8px;
+  margin: -12px -12px 8px -12px;
+  border-bottom: 1px solid #00ff88;
+}
+
+.radar-header strong {
+  color: #00ff88;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.radar-data {
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.radar-label {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.radar-value {
+  color: #fff;
+  margin-left: 4px;
+}

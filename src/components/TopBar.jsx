@@ -88,7 +88,7 @@ export default function TopBar() {
         </button>
 
         <div className="speed-controls">
-          {[1, 2, 5, 10].map(speed => (
+          {[1, 5, 10, 30, 60].map(speed => (
             <button
               key={speed}
               className={`speed-btn ${gameSpeed === speed ? 'active' : ''}`}

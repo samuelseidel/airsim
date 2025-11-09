@@ -26,7 +26,7 @@ const useGameStore = create((set, get) => ({
   weeklyRevenue: 0,
   weeklyExpenses: 0,
   gameTime: 0, // in seconds
-  gameSpeed: 5, // 5x speed default
+  gameSpeed: 60, // 60x speed default for faster gameplay
   isPaused: false,
   gameWeek: 1,
 
@@ -281,7 +281,7 @@ const useGameStore = create((set, get) => ({
       weeklyRevenue: 0,
       weeklyExpenses: 0,
       gameTime: 0,
-      gameSpeed: 5,
+      gameSpeed: 60,
       isPaused: false,
       gameWeek: 1,
       fleet: [], // Start with no aircraft
