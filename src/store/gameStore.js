@@ -20,6 +20,20 @@ const generateRegistration = () => {
   }
 };
 
+// Generate airline-style flight number
+const generateFlightNumber = () => {
+  // Real airline codes
+  const airlineCodes = [
+    'AA', 'UA', 'DL', 'AS', 'B6', 'WN', 'NK', // US carriers
+    'BA', 'AF', 'LH', 'KL', 'IB', 'AZ', 'SK', // European carriers
+    'EK', 'QR', 'EY', 'TK', 'SV', // Middle East carriers
+    'SQ', 'CX', 'NH', 'JL', 'AI', 'QF', // Asia-Pacific carriers
+  ];
+  const airlineCode = airlineCodes[Math.floor(Math.random() * airlineCodes.length)];
+  const flightNumber = Math.floor(100 + Math.random() * 900); // 100-999
+  return `${airlineCode}${flightNumber}`;
+};
+
 const useGameStore = create((set, get) => ({
   // Game state
   cash: 8000000, // $8M starting capital (medium difficulty)
@@ -86,6 +100,7 @@ const useGameStore = create((set, get) => ({
 
     const route = {
       id: `route-${state.nextRouteId}`,
+      flightNumber: generateFlightNumber(),
       origin,
       destination,
       aircraftId,

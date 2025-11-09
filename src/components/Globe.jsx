@@ -17,6 +17,7 @@ export default function GlobeComponent({
     width: window.innerWidth,
     height: window.innerHeight
   });
+  const [cameraDistance, setCameraDistance] = useState(300);
 
   // Get game time for day/night cycle
   const gameTime = useGameStore(state => state.gameTime);
@@ -46,8 +47,22 @@ export default function GlobeComponent({
     controls.autoRotate = false;
     controls.autoRotateSpeed = 0.5;
 
+    // Track camera distance for zoom-based airport sizing
+    const updateCameraDistance = () => {
+      if (globeRef.current && globeRef.current.camera()) {
+        const camera = globeRef.current.camera();
+        const distance = camera.position.length();
+        setCameraDistance(distance);
+      }
+    };
+
+    // Update camera distance on control changes
+    controls.addEventListener('change', updateCameraDistance);
+    updateCameraDistance(); // Initial update
+
     // Cleanup function to prevent memory leaks
     return () => {
+      controls.removeEventListener('change', updateCameraDistance);
       if (controls && controls.dispose) {
         controls.dispose();
       }
@@ -134,15 +149,23 @@ export default function GlobeComponent({
   }, [gameTime]); // Update lighting when game time changes
 
   // Memoize airport data to prevent unnecessary recalculations
-  const airportData = useMemo(() =>
-    airports.map(airport => ({
-      ...airport,
-      altitude: 0.01,
-      color: selectedAirport === airport.id ? '#FFD700' :
-             airport.size === 'large' ? '#00ff88' : '#00aaff',
-      size: airport.size === 'large' ? 0.3 : 0.2,
-    }))
-  , [selectedAirport]);
+  const airportData = useMemo(() => {
+    // Calculate size multiplier based on camera distance
+    // minDistance = 150, maxDistance = 500
+    // When zoomed out (distance closer to 500), make airports bigger
+    // When zoomed in (distance closer to 150), make airports normal size
+    const zoomFactor = Math.max(1, cameraDistance / 250); // Normalize around 250 (mid-range)
+
+    return airports.map(airport => {
+      const baseSize = airport.size === 'large' ? 20 : 16; // Size in pixels for HTML elements
+      const adjustedSize = baseSize * zoomFactor;
+
+      return {
+        ...airport,
+        size: adjustedSize,
+      };
+    });
+  }, [selectedAirport, cameraDistance]);
 
   // Memoize route arcs to prevent unnecessary recalculations
   const routeArcs = useMemo(() =>
@@ -204,20 +227,24 @@ export default function GlobeComponent({
         atmosphereColor="lightskyblue"
         atmosphereAltitude={0.15}
 
-        // Airport markers
-        pointsData={airportData}
-        pointAltitude="altitude"
-        pointColor="color"
-        pointRadius="size"
-        pointLabel={d => `
-          <div class="airport-tooltip">
-            <strong>${d.name}</strong><br/>
-            ${d.city}, ${d.country}<br/>
-            Population: ${d.population.toLocaleString()}
-          </div>
-        `}
-        onPointClick={point => onAirportClick && onAirportClick(point.id)}
-        pointsMerge={false}
+        // Airport markers using HTML elements
+        htmlElementsData={airportData}
+        htmlLat={d => d.lat}
+        htmlLng={d => d.lng}
+        htmlAltitude={0.01}
+        htmlElement={d => {
+          const el = document.createElement('div');
+          el.innerHTML = '✈';
+          el.style.color = selectedAirport === d.id ? '#FFD700' :
+                           d.size === 'large' ? '#00ff88' : '#00aaff';
+          el.style.fontSize = `${d.size}px`;
+          el.style.cursor = 'pointer';
+          el.style.userSelect = 'none';
+          el.style.pointerEvents = 'auto';
+          el.title = `${d.name}\n${d.city}, ${d.country}\nPopulation: ${d.population.toLocaleString()}`;
+          el.addEventListener('click', () => onAirportClick && onAirportClick(d.id));
+          return el;
+        }}
 
         // Route arcs
         arcsData={routeArcs}

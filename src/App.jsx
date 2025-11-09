@@ -3,7 +3,6 @@ import Globe from './components/Globe';
 import TopBar from './components/TopBar';
 import Sidebar from './components/Sidebar';
 import MobileNav from './components/MobileNav';
-import FlightTicker from './components/FlightTicker';
 import RouteCreator from './components/RouteCreator';
 import Notifications from './components/Notifications';
 import WelcomeScreen from './components/WelcomeScreen';
@@ -38,7 +37,6 @@ function App() {
 
       <div className="ui-overlay">
         <TopBar />
-        <FlightTicker />
         <Sidebar />
         <MobileNav />
         <Notifications />
