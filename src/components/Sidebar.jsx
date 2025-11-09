@@ -56,7 +56,7 @@ export default function Sidebar() {
             routes.map(route => (
               <div key={route.id} className="route-item">
                 <div className="route-header">
-                  <span className="route-name">{route.origin} → {route.destination}</span>
+                  <span className="route-name">{route.origin} ↔ {route.destination}</span>
                   <button
                     className="delete-btn"
                     onClick={() => removeRoute(route.id)}

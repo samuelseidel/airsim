@@ -108,7 +108,7 @@ export default function MobileNav() {
                         {routes.map(route => (
                           <div key={route.id} className="mobile-route-item">
                             <div className="mobile-route-header">
-                              <span className="mobile-route-name">{route.origin} → {route.destination}</span>
+                              <span className="mobile-route-name">{route.origin} ↔ {route.destination}</span>
                               <button
                                 className="mobile-delete-btn"
                                 onClick={() => removeRoute(route.id)}
