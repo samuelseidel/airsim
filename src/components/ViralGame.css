@@ -1,0 +1,517 @@
+.viral-game {
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+}
+
+/* Money Display */
+.money-display {
+  padding: 20px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.money-amount {
+  font-size: 48px;
+  font-weight: 900;
+  color: #FFD700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  font-family: 'Arial Black', sans-serif;
+}
+
+.golden-planes {
+  margin-top: 8px;
+  font-size: 18px;
+  color: #FFD700;
+  font-weight: 600;
+}
+
+/* Main Tap Area */
+.tap-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 20px;
+}
+
+.globe {
+  font-size: 120px;
+  margin-bottom: 40px;
+  animation: rotate 20s linear infinite;
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Planes Container */
+.planes-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  max-width: 90%;
+}
+
+.plane {
+  font-size: 60px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.3s;
+  padding: 10px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.plane:active {
+  transform: scale(0.95);
+}
+
+.plane.flying {
+  animation: fly 3s ease-in-out;
+}
+
+.plane.golden {
+  animation: golden-pulse 2s ease-in-out infinite;
+}
+
+@keyframes fly {
+  0% {
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  50% {
+    transform: translateX(100px) translateY(-100px) scale(1.3) rotate(45deg);
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+  }
+  100% {
+    transform: translateX(0) translateY(0) scale(1);
+  }
+}
+
+@keyframes golden-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1));
+  }
+}
+
+.tap-hint {
+  position: absolute;
+  bottom: 20px;
+  font-size: 24px;
+  color: white;
+  animation: bounce 2s ease-in-out infinite;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Bottom Actions */
+.bottom-actions {
+  padding: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.buy-plane-button,
+.upgrades-button,
+.prestige-button {
+  padding: 20px 30px;
+  font-size: 20px;
+  font-weight: 700;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  min-width: 150px;
+}
+
+.buy-plane-button {
+  background: linear-gradient(135deg, #00ff88, #00cc6a);
+  color: #000;
+  flex: 1;
+  max-width: 300px;
+}
+
+.buy-plane-button:disabled {
+  background: #555;
+  color: #888;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.buy-plane-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.button-cost {
+  font-size: 14px;
+  margin-top: 5px;
+  opacity: 0.9;
+}
+
+.upgrades-button {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.upgrades-button:active {
+  transform: scale(0.95);
+}
+
+.prestige-button {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  animation: prestige-glow 2s ease-in-out infinite;
+}
+
+@keyframes prestige-glow {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(255, 215, 0, 0.9);
+  }
+}
+
+/* Upgrades Panel */
+.upgrades-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.upgrades-panel {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  padding: 20px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.upgrades-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.upgrades-header h2 {
+  margin: 0;
+  color: #FFD700;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  line-height: 1;
+}
+
+/* Upgrades List */
+.upgrades-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.upgrade-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s;
+}
+
+.upgrade-item:not(.disabled):hover {
+  border-color: #00ff88;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.upgrade-item.disabled {
+  opacity: 0.5;
+}
+
+.upgrade-icon {
+  font-size: 40px;
+  flex-shrink: 0;
+}
+
+.upgrade-info {
+  flex: 1;
+}
+
+.upgrade-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.upgrade-effect {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.upgrade-buy-button {
+  background: linear-gradient(135deg, #00ff88, #00cc6a);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+.upgrade-buy-button:disabled {
+  background: #555;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.upgrade-buy-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Prestige Info */
+.prestige-info {
+  background: rgba(255, 215, 0, 0.1);
+  border: 2px solid #FFD700;
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+}
+
+.prestige-info h3 {
+  margin: 0 0 10px 0;
+  color: #FFD700;
+  font-size: 24px;
+}
+
+.prestige-info p {
+  margin: 0;
+  color: white;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Offline Popup */
+.offline-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s;
+}
+
+.offline-content {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  border-radius: 30px;
+  padding: 40px;
+  text-align: center;
+  max-width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.offline-content h2 {
+  margin: 0 0 20px 0;
+  color: white;
+  font-size: 36px;
+}
+
+.offline-content p {
+  margin: 0 0 10px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 18px;
+}
+
+.offline-amount {
+  font-size: 48px;
+  font-weight: 900;
+  color: #FFD700;
+  margin: 20px 0;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.claim-button {
+  background: linear-gradient(135deg, #00ff88, #00cc6a);
+  color: #000;
+  border: none;
+  border-radius: 15px;
+  padding: 20px 40px;
+  font-size: 24px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.5);
+  margin-top: 20px;
+}
+
+.claim-button:active {
+  transform: scale(0.95);
+}
+
+/* Notifications */
+.notifications {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.notification {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 10px;
+  font-weight: 600;
+  animation: notifSlideIn 0.3s ease-out;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.notification-success {
+  border-left: 4px solid #00ff88;
+}
+
+.notification-error {
+  border-left: 4px solid #ff4444;
+}
+
+.notification-info {
+  border-left: 4px solid #00aaff;
+}
+
+@keyframes notifSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stats Display */
+.stats-display {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .money-amount {
+    font-size: 36px;
+  }
+
+  .globe {
+    font-size: 80px;
+  }
+
+  .plane {
+    font-size: 50px;
+  }
+
+  .buy-plane-button,
+  .upgrades-button,
+  .prestige-button {
+    font-size: 16px;
+    padding: 15px 20px;
+    min-width: 120px;
+  }
+
+  .offline-content h2 {
+    font-size: 28px;
+  }
+
+  .offline-amount {
+    font-size: 36px;
+  }
+}
+
+/* Smooth scrolling */
+.upgrades-panel {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent text selection on tap */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
