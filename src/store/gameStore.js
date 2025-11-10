@@ -109,6 +109,10 @@ const useGameStore = create((set, get) => ({
       assignedRoute: null,
       totalFlightHours: 0,
       hoursSinceService: 0,
+      hoursUntilMaintenance: 500,
+      maintenanceInterval: 500,
+      inMaintenance: false,
+      maintenanceEndTime: null,
       location: 'JFK',
     }
   ],
