@@ -234,7 +234,7 @@ export default function GlobeComponent({
         arcsTransitionDuration={300}
         arcLabel={d => `
           <div class="route-tooltip">
-            <strong>${d.origin} → ${d.destination}</strong><br/>
+            <strong>${d.origin} ↔ ${d.destination}</strong><br/>
             Profit: $${d.profit?.toLocaleString() || 0}/flight<br/>
             Load: ${d.loadFactor || 0}%
           </div>

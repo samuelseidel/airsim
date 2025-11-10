@@ -2,6 +2,60 @@ import { create } from 'zustand';
 import { calculateDistance, calculateRouteDemand, airports } from '../data/airports';
 import { calculateOperatingCost, getAircraftType } from '../data/aircraft';
 
+// Flight phases
+const FLIGHT_PHASES = {
+  TAXI_TAKEOFF: 'taxi_takeoff',
+  CLIMB: 'climb',
+  CRUISE: 'cruise',
+  DESCENT: 'descent',
+  LANDING: 'landing',
+  TURNAROUND: 'turnaround',
+};
+
+// Get realistic speeds and altitudes for aircraft by category
+const getPhaseParameters = (aircraftCategory) => {
+  // Speeds in km/h, altitudes in meters
+  const params = {
+    turboprop: {
+      taxi_takeoff: { speed: 50, altitude: 0, duration: 600 }, // 10 min
+      climb: { speed: 300, altitude: 7600, duration: 900 }, // 15 min to 25,000 ft
+      descent: { speed: 350, altitude: 0, duration: 1200 }, // 20 min
+      landing: { speed: 80, altitude: 0, duration: 300 }, // 5 min
+      turnaround: { speed: 0, altitude: 0, duration: 3600 }, // 1 hour
+    },
+    regional: {
+      taxi_takeoff: { speed: 60, altitude: 0, duration: 600 },
+      climb: { speed: 400, altitude: 9100, duration: 1200 }, // 20 min to 30,000 ft
+      descent: { speed: 450, altitude: 0, duration: 1500 }, // 25 min
+      landing: { speed: 100, altitude: 0, duration: 300 },
+      turnaround: { speed: 0, altitude: 0, duration: 3600 },
+    },
+    narrowbody: {
+      taxi_takeoff: { speed: 70, altitude: 0, duration: 600 },
+      climb: { speed: 500, altitude: 10700, duration: 1500 }, // 25 min to 35,000 ft
+      descent: { speed: 550, altitude: 0, duration: 1800 }, // 30 min
+      landing: { speed: 120, altitude: 0, duration: 300 },
+      turnaround: { speed: 0, altitude: 0, duration: 5400 }, // 1.5 hours
+    },
+    widebody: {
+      taxi_takeoff: { speed: 80, altitude: 0, duration: 720 }, // 12 min
+      climb: { speed: 550, altitude: 12200, duration: 1800 }, // 30 min to 40,000 ft
+      descent: { speed: 600, altitude: 0, duration: 2100 }, // 35 min
+      landing: { speed: 140, altitude: 0, duration: 360 },
+      turnaround: { speed: 0, altitude: 0, duration: 7200 }, // 2 hours
+    },
+    superheavy: {
+      taxi_takeoff: { speed: 90, altitude: 0, duration: 900 }, // 15 min
+      climb: { speed: 600, altitude: 12800, duration: 2100 }, // 35 min to 42,000 ft
+      descent: { speed: 650, altitude: 0, duration: 2400 }, // 40 min
+      landing: { speed: 150, altitude: 0, duration: 420 },
+      turnaround: { speed: 0, altitude: 0, duration: 10800 }, // 3 hours
+    },
+  };
+
+  return params[aircraftCategory] || params.narrowbody;
+};
+
 // Generate aircraft registration number
 const generateRegistration = () => {
   const prefixes = ['N', 'D-', 'OK-', 'G-', 'F-', 'PH-', 'OE-', 'SE-', 'LN-', 'EI-'];
@@ -37,6 +91,10 @@ const useGameStore = create((set, get) => ({
   routes: [],
   nextRouteId: 1,
 
+  // Active flights
+  activeFlights: [],
+  nextFlightId: 1,
+
   // Staff
   staff: {
     pilots: { count: 10, satisfaction: 80 },
@@ -61,6 +119,18 @@ const useGameStore = create((set, get) => ({
     const aircraftType = getAircraftType(aircraft?.type);
 
     if (!aircraft || !aircraftType) return;
+
+    // Check if aircraft is in maintenance
+    if (aircraft.inMaintenance) {
+      state.addNotification('Aircraft is currently in maintenance!', 'error');
+      return;
+    }
+
+    // Check if aircraft needs maintenance
+    if (aircraft.hoursUntilMaintenance <= 0) {
+      state.addNotification('Aircraft requires maintenance before flying!', 'error');
+      return;
+    }
 
     const distance = calculateDistance(
       state.getAirport(origin).lat,
@@ -110,14 +180,68 @@ const useGameStore = create((set, get) => ({
     aircraft.assignedRoute = route.id;
     aircraft.location = origin;
 
+    // Create initial flight for this route
+    const flight = state.createFlight(route.id, origin, destination, aircraftId);
+
     set((state) => ({
       routes: [...state.routes, route],
       nextRouteId: state.nextRouteId + 1,
       fleet: state.fleet.map(a => a.id === aircraftId ? aircraft : a),
+      activeFlights: flight ? [...state.activeFlights, flight] : state.activeFlights,
+      nextFlightId: flight ? state.nextFlightId + 1 : state.nextFlightId,
       showRouteCreator: false,
     }));
 
-    state.addNotification(`Route ${origin} → ${destination} created!`, 'success');
+    state.addNotification(`Route ${origin} ↔ ${destination} created!`, 'success');
+  },
+
+  // Create a new flight
+  createFlight: (routeId, origin, destination, aircraftId) => {
+    const state = get();
+    const aircraft = state.fleet.find(a => a.id === aircraftId);
+    const aircraftType = getAircraftType(aircraft?.type);
+
+    if (!aircraftType) return null;
+
+    const originAirport = state.getAirport(origin);
+    const destAirport = state.getAirport(destination);
+    const distance = calculateDistance(originAirport.lat, originAirport.lng, destAirport.lat, destAirport.lng);
+
+    const phaseParams = getPhaseParameters(aircraftType.category);
+    const cruiseSpeed = aircraftType.speed;
+
+    // Calculate total flight duration
+    const taxiTakeoffDuration = phaseParams.taxi_takeoff.duration;
+    const climbDuration = phaseParams.climb.duration;
+    const descentDuration = phaseParams.descent.duration;
+    const landingDuration = phaseParams.landing.duration;
+
+    // Calculate cruise distance and duration
+    const cruiseDistance = distance;
+    const cruiseDuration = (cruiseDistance / cruiseSpeed) * 3600; // convert hours to seconds
+
+    const totalFlightDuration = taxiTakeoffDuration + climbDuration + cruiseDuration + descentDuration + landingDuration;
+
+    return {
+      id: `flight-${state.nextFlightId}`,
+      routeId,
+      aircraftId,
+      registration: aircraft.registration,
+      origin,
+      destination,
+      distance,
+      phase: FLIGHT_PHASES.TAXI_TAKEOFF,
+      phaseProgress: 0,
+      totalProgress: 0,
+      currentSpeed: 0,
+      currentAltitude: 0,
+      departureTime: state.gameTime,
+      estimatedArrival: state.gameTime + totalFlightDuration,
+      totalFlightDuration,
+      phaseParams,
+      cruiseSpeed,
+      isOutbound: true, // true for origin->destination, false for destination->origin
+    };
   },
 
   // Remove route
@@ -135,6 +259,7 @@ const useGameStore = create((set, get) => ({
     set((state) => ({
       routes: state.routes.filter(r => r.id !== routeId),
       fleet: state.fleet.map(a => a.id === route?.aircraftId ? { ...a, assignedRoute: null } : a),
+      activeFlights: state.activeFlights.filter(f => f.routeId !== routeId),
     }));
   },
 
@@ -159,6 +284,10 @@ const useGameStore = create((set, get) => ({
       assignedRoute: null,
       totalFlightHours: 0,
       hoursSinceService: 0,
+      hoursUntilMaintenance: 500, // 500 hours until first maintenance
+      maintenanceInterval: 500, // Maintenance every 500 hours
+      inMaintenance: false,
+      maintenanceEndTime: null,
       location: 'JFK',
     };
 
@@ -170,6 +299,213 @@ const useGameStore = create((set, get) => ({
     state.addNotification(`Purchased ${aircraftType.name}!`, 'success');
   },
 
+  // Update flight simulation
+  updateFlights: (deltaTime) => {
+    const state = get();
+    const updatedFlights = [];
+    const flightHoursFlown = {}; // Track hours flown per aircraft
+
+    state.activeFlights.forEach(flight => {
+      let newFlight = { ...flight };
+      const phaseParams = flight.phaseParams;
+
+      // Track flight hours for maintenance (only during actual flight phases, not turnaround)
+      if (flight.phase !== FLIGHT_PHASES.TURNAROUND) {
+        const hoursFlown = deltaTime / 3600; // Convert seconds to hours
+        flightHoursFlown[flight.aircraftId] = (flightHoursFlown[flight.aircraftId] || 0) + hoursFlown;
+      }
+
+      // Update based on current phase
+      switch (flight.phase) {
+        case FLIGHT_PHASES.TAXI_TAKEOFF:
+          newFlight.phaseProgress += deltaTime;
+          newFlight.currentSpeed = phaseParams.taxi_takeoff.speed;
+          newFlight.currentAltitude = 0;
+
+          if (newFlight.phaseProgress >= phaseParams.taxi_takeoff.duration) {
+            newFlight.phase = FLIGHT_PHASES.CLIMB;
+            newFlight.phaseProgress = 0;
+          }
+          break;
+
+        case FLIGHT_PHASES.CLIMB:
+          newFlight.phaseProgress += deltaTime;
+          const climbProgress = newFlight.phaseProgress / phaseParams.climb.duration;
+          newFlight.currentSpeed = phaseParams.climb.speed;
+          newFlight.currentAltitude = phaseParams.climb.altitude * Math.min(climbProgress, 1);
+
+          if (newFlight.phaseProgress >= phaseParams.climb.duration) {
+            newFlight.phase = FLIGHT_PHASES.CRUISE;
+            newFlight.phaseProgress = 0;
+          }
+          break;
+
+        case FLIGHT_PHASES.CRUISE:
+          const cruiseDuration = (flight.distance / flight.cruiseSpeed) * 3600;
+          newFlight.phaseProgress += deltaTime;
+          newFlight.currentSpeed = flight.cruiseSpeed;
+          newFlight.currentAltitude = phaseParams.climb.altitude;
+
+          if (newFlight.phaseProgress >= cruiseDuration) {
+            newFlight.phase = FLIGHT_PHASES.DESCENT;
+            newFlight.phaseProgress = 0;
+          }
+          break;
+
+        case FLIGHT_PHASES.DESCENT:
+          newFlight.phaseProgress += deltaTime;
+          const descentProgress = newFlight.phaseProgress / phaseParams.descent.duration;
+          newFlight.currentSpeed = phaseParams.descent.speed;
+          newFlight.currentAltitude = phaseParams.climb.altitude * (1 - Math.min(descentProgress, 1));
+
+          if (newFlight.phaseProgress >= phaseParams.descent.duration) {
+            newFlight.phase = FLIGHT_PHASES.LANDING;
+            newFlight.phaseProgress = 0;
+          }
+          break;
+
+        case FLIGHT_PHASES.LANDING:
+          newFlight.phaseProgress += deltaTime;
+          newFlight.currentSpeed = phaseParams.landing.speed;
+          newFlight.currentAltitude = 0;
+
+          if (newFlight.phaseProgress >= phaseParams.landing.duration) {
+            newFlight.phase = FLIGHT_PHASES.TURNAROUND;
+            newFlight.phaseProgress = 0;
+          }
+          break;
+
+        case FLIGHT_PHASES.TURNAROUND:
+          newFlight.phaseProgress += deltaTime;
+          newFlight.currentSpeed = 0;
+          newFlight.currentAltitude = 0;
+
+          if (newFlight.phaseProgress >= phaseParams.turnaround.duration) {
+            // Flight complete - create return flight
+            const route = state.routes.find(r => r.id === flight.routeId);
+            if (route && route.active) {
+              // Swap origin and destination for return flight
+              const newOrigin = flight.isOutbound ? flight.destination : flight.origin;
+              const newDestination = flight.isOutbound ? flight.origin : flight.destination;
+
+              const returnFlight = state.createFlight(
+                flight.routeId,
+                newOrigin,
+                newDestination,
+                flight.aircraftId
+              );
+
+              if (returnFlight) {
+                returnFlight.isOutbound = !flight.isOutbound;
+                updatedFlights.push(returnFlight);
+              }
+            }
+            return; // Don't add current flight to updated list
+          }
+          break;
+      }
+
+      // Calculate total progress percentage (0-100%)
+      const phaseDurations = {
+        [FLIGHT_PHASES.TAXI_TAKEOFF]: phaseParams.taxi_takeoff.duration,
+        [FLIGHT_PHASES.CLIMB]: phaseParams.climb.duration,
+        [FLIGHT_PHASES.CRUISE]: (flight.distance / flight.cruiseSpeed) * 3600,
+        [FLIGHT_PHASES.DESCENT]: phaseParams.descent.duration,
+        [FLIGHT_PHASES.LANDING]: phaseParams.landing.duration,
+        [FLIGHT_PHASES.TURNAROUND]: 0, // Don't count turnaround in flight progress
+      };
+
+      const phaseOrder = [
+        FLIGHT_PHASES.TAXI_TAKEOFF,
+        FLIGHT_PHASES.CLIMB,
+        FLIGHT_PHASES.CRUISE,
+        FLIGHT_PHASES.DESCENT,
+        FLIGHT_PHASES.LANDING,
+      ];
+
+      let completedDuration = 0;
+      const currentPhaseIndex = phaseOrder.indexOf(newFlight.phase);
+
+      for (let i = 0; i < currentPhaseIndex; i++) {
+        completedDuration += phaseDurations[phaseOrder[i]];
+      }
+      completedDuration += newFlight.phaseProgress;
+
+      const totalFlightDuration = phaseOrder.reduce((sum, phase) => sum + phaseDurations[phase], 0);
+      newFlight.totalProgress = Math.min((completedDuration / totalFlightDuration) * 100, 100);
+
+      updatedFlights.push(newFlight);
+    });
+
+    // Update aircraft flight hours and maintenance counters
+    const updatedFleet = state.fleet.map(aircraft => {
+      const hoursFlown = flightHoursFlown[aircraft.id] || 0;
+      if (hoursFlown > 0) {
+        return {
+          ...aircraft,
+          totalFlightHours: aircraft.totalFlightHours + hoursFlown,
+          hoursSinceService: aircraft.hoursSinceService + hoursFlown,
+          hoursUntilMaintenance: Math.max(0, aircraft.hoursUntilMaintenance - hoursFlown),
+        };
+      }
+      return aircraft;
+    });
+
+    set({ activeFlights: updatedFlights, fleet: updatedFleet });
+  },
+
+  // Perform maintenance on aircraft
+  performMaintenance: (aircraftId) => {
+    const state = get();
+    const aircraft = state.fleet.find(a => a.id === aircraftId);
+
+    if (!aircraft) return;
+
+    const aircraftType = getAircraftType(aircraft.type);
+    if (!aircraftType) return;
+
+    // Calculate maintenance cost: 2% of aircraft value
+    const maintenanceCost = aircraftType.price * 0.02;
+
+    if (state.cash < maintenanceCost) {
+      state.addNotification('Insufficient funds for maintenance!', 'error');
+      return;
+    }
+
+    // Maintenance duration: 8-24 hours depending on aircraft size
+    const maintenanceDurations = {
+      turboprop: 8 * 3600,    // 8 hours
+      regional: 12 * 3600,    // 12 hours
+      narrowbody: 16 * 3600,  // 16 hours
+      widebody: 20 * 3600,    // 20 hours
+      superheavy: 24 * 3600,  // 24 hours
+    };
+    const maintenanceDuration = maintenanceDurations[aircraftType.category] || 16 * 3600;
+
+    // Remove aircraft from active routes during maintenance
+    const routeId = aircraft.assignedRoute;
+    if (routeId) {
+      state.removeRoute(routeId);
+    }
+
+    const updatedAircraft = {
+      ...aircraft,
+      inMaintenance: true,
+      maintenanceEndTime: state.gameTime + maintenanceDuration,
+      assignedRoute: null,
+    };
+
+    set((state) => ({
+      fleet: state.fleet.map(a => a.id === aircraftId ? updatedAircraft : a),
+      cash: state.cash - maintenanceCost,
+    }));
+
+    state.addNotification(
+      `Maintenance started for ${aircraft.registration}. Cost: $${maintenanceCost.toLocaleString()}`,
+      'info'
+    );
+  },
+
   // Game tick (called every frame)
   tick: (deltaTime) => {
     const state = get();
@@ -177,6 +513,29 @@ const useGameStore = create((set, get) => ({
 
     const gameTimeDelta = deltaTime * state.gameSpeed;
     const newGameTime = state.gameTime + gameTimeDelta;
+
+    // Update flight simulations
+    state.updateFlights(gameTimeDelta);
+
+    // Check for completed maintenance
+    const updatedFleet = state.fleet.map(aircraft => {
+      if (aircraft.inMaintenance && aircraft.maintenanceEndTime && newGameTime >= aircraft.maintenanceEndTime) {
+        state.addNotification(`${aircraft.registration} maintenance completed!`, 'success');
+        return {
+          ...aircraft,
+          inMaintenance: false,
+          maintenanceEndTime: null,
+          hoursUntilMaintenance: aircraft.maintenanceInterval,
+          hoursSinceService: 0,
+          condition: 100,
+        };
+      }
+      return aircraft;
+    });
+
+    if (updatedFleet.some((a, i) => a !== state.fleet[i])) {
+      set({ fleet: updatedFleet });
+    }
 
     // Check if week changed
     const oldWeek = Math.floor(state.gameTime / (7 * 24 * 3600));
@@ -272,6 +631,8 @@ const useGameStore = create((set, get) => ({
       routes: saveData.routes,
       nextRouteId: saveData.nextRouteId,
       staff: saveData.staff,
+      activeFlights: saveData.activeFlights || [],
+      nextFlightId: saveData.nextFlightId || 1,
     });
   },
 
@@ -287,6 +648,8 @@ const useGameStore = create((set, get) => ({
       fleet: [], // Start with no aircraft
       routes: [],
       nextRouteId: 1,
+      activeFlights: [],
+      nextFlightId: 1,
       staff: {
         pilots: { count: 10, satisfaction: 80 },
         crew: { count: 20, satisfaction: 80 },

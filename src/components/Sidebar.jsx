@@ -10,7 +10,9 @@ export default function Sidebar() {
     setShowRouteCreator,
     removeRoute,
     purchaseAircraft,
+    performMaintenance,
     weeklyRevenue,
+    gameTime,
   } = useGameStore();
 
   const handlePurchase = (aircraftTypeId) => {
@@ -56,7 +58,7 @@ export default function Sidebar() {
             routes.map(route => (
               <div key={route.id} className="route-item">
                 <div className="route-header">
-                  <span className="route-name">{route.origin} → {route.destination}</span>
+                  <span className="route-name">{route.origin} ↔ {route.destination}</span>
                   <button
                     className="delete-btn"
                     onClick={() => removeRoute(route.id)}
@@ -90,15 +92,66 @@ export default function Sidebar() {
         <div className="fleet-list">
           {fleet.map(aircraft => {
             const type = getAircraftType(aircraft.type);
+            const maintenanceCost = type.price * 0.02;
+            const needsMaintenance = aircraft.hoursUntilMaintenance <= 0;
+            const maintenanceSoon = aircraft.hoursUntilMaintenance <= 50 && aircraft.hoursUntilMaintenance > 0;
+
+            // Calculate time remaining for maintenance
+            let maintenanceTimeRemaining = null;
+            if (aircraft.inMaintenance && aircraft.maintenanceEndTime) {
+              const remainingSeconds = Math.max(0, aircraft.maintenanceEndTime - gameTime);
+              const hours = Math.floor(remainingSeconds / 3600);
+              const minutes = Math.floor((remainingSeconds % 3600) / 60);
+              maintenanceTimeRemaining = `${hours}h ${minutes}m`;
+            }
+
             return (
-              <div key={aircraft.id} className="fleet-item">
+              <div key={aircraft.id} className={`fleet-item ${needsMaintenance ? 'needs-maintenance' : ''} ${aircraft.inMaintenance ? 'in-maintenance' : ''}`}>
                 <div className="fleet-header">
-                  <span className="fleet-name">{aircraft.name}</span>
+                  <span className="fleet-name">{aircraft.registration}</span>
                   <span className="fleet-condition">{aircraft.condition}%</span>
                 </div>
                 <div className="fleet-type">{type.name}</div>
+
+                <div className="fleet-maintenance">
+                  {aircraft.inMaintenance ? (
+                    <>
+                      <span className="maintenance-status in-progress">🔧 In Maintenance</span>
+                      <span className="maintenance-time">{maintenanceTimeRemaining}</span>
+                    </>
+                  ) : needsMaintenance ? (
+                    <>
+                      <span className="maintenance-status required">⚠️ Maintenance Required</span>
+                      <button
+                        className="maintenance-btn urgent"
+                        onClick={() => performMaintenance(aircraft.id)}
+                        disabled={cash < maintenanceCost}
+                      >
+                        Maintain (${(maintenanceCost / 1000).toFixed(0)}k)
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className={`maintenance-hours ${maintenanceSoon ? 'warning' : ''}`}>
+                        {Math.round(aircraft.hoursUntilMaintenance)}h until maintenance
+                      </span>
+                      {maintenanceSoon && (
+                        <button
+                          className="maintenance-btn"
+                          onClick={() => performMaintenance(aircraft.id)}
+                          disabled={cash < maintenanceCost}
+                        >
+                          Maintain (${(maintenanceCost / 1000).toFixed(0)}k)
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+
                 <div className="fleet-status">
-                  {aircraft.assignedRoute ? (
+                  {aircraft.inMaintenance ? (
+                    <span className="status-maintenance">🔧 Maintenance</span>
+                  ) : aircraft.assignedRoute ? (
                     <span className="status-active">✓ Active</span>
                   ) : (
                     <span className="status-idle">○ Available</span>

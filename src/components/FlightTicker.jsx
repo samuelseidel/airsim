@@ -1,27 +1,51 @@
 import useGameStore from '../store/gameStore';
 import './FlightTicker.css';
 
+// Format time in HH:MM format
+const formatTime = (seconds) => {
+  const hours = Math.floor(seconds / 3600) % 24;
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+};
+
+// Format altitude in feet
+const formatAltitude = (meters) => {
+  const feet = Math.round(meters * 3.28084);
+  return feet.toLocaleString();
+};
+
+// Format speed in knots
+const formatSpeed = (kmh) => {
+  const knots = Math.round(kmh * 0.539957);
+  return knots;
+};
+
+// Get phase display name
+const getPhaseDisplay = (phase) => {
+  const phaseNames = {
+    taxi_takeoff: 'TAXI/TAKEOFF',
+    climb: 'CLIMBING',
+    cruise: 'CRUISE',
+    descent: 'DESCENDING',
+    landing: 'LANDING',
+    turnaround: 'ON GROUND',
+  };
+  return phaseNames[phase] || phase.toUpperCase();
+};
+
 export default function FlightTicker() {
-  const routes = useGameStore(state => state.routes);
-  const fleet = useGameStore(state => state.fleet);
+  const activeFlights = useGameStore(state => state.activeFlights);
+  const gameTime = useGameStore(state => state.gameTime);
 
-  // Get active flights
-  const activeFlights = routes
-    .filter(route => route.active)
-    .map(route => {
-      const aircraft = fleet.find(a => a.id === route.aircraftId);
-      return {
-        registration: aircraft?.registration || 'N/A',
-        route: `${route.origin} → ${route.destination}`,
-      };
-    });
+  // Filter out flights that are in turnaround (on ground)
+  const flyingFlights = activeFlights.filter(flight => flight.phase !== 'turnaround');
 
-  if (activeFlights.length === 0) {
+  if (flyingFlights.length === 0) {
     return null;
   }
 
   // Duplicate flights for seamless scrolling
-  const displayFlights = [...activeFlights, ...activeFlights, ...activeFlights];
+  const displayFlights = [...flyingFlights, ...flyingFlights, ...flyingFlights];
 
   return (
     <div className="flight-ticker">
@@ -33,7 +57,12 @@ export default function FlightTicker() {
           {displayFlights.map((flight, index) => (
             <div key={index} className="flight-ticker-item">
               <span className="flight-registration">{flight.registration}</span>
-              <span className="flight-route">{flight.route}</span>
+              <span className="flight-route">{flight.origin} ↔ {flight.destination}</span>
+              <span className="flight-phase">{getPhaseDisplay(flight.phase)}</span>
+              <span className="flight-speed">{formatSpeed(flight.currentSpeed)} kt</span>
+              <span className="flight-altitude">{formatAltitude(flight.currentAltitude)} ft</span>
+              <span className="flight-progress">{Math.round(flight.totalProgress)}%</span>
+              <span className="flight-departure">DEP {formatTime(flight.departureTime)}</span>
             </div>
           ))}
         </div>
